@@ -7,8 +7,16 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
+# dl_toolbox = {git="git@github.com:mkay-atm/dl_toolbox.git", branch="VMG_testing"}
+# hpl2netcdf-client = {git="git@github.com:mkay-atm/dl_toolbox.git", branch="VMG_testing"}
+# hpl2netcdf-client = {git="git@github.com:mkay-atm/dl_toolbox.git", branch="master"}
+hpl2netcdf-client = {git="git@github.com:rruefenacht/dl_toolbox_nrt.git", branch="nrt"}
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry.scripts]
+hpl2netCDF-client = "hpl2netCDF_client.command_line:main"
