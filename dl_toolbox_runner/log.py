@@ -8,7 +8,7 @@ from dl_toolbox_runner.utils.file_utils import abs_file_path
 
 
 # get logs config
-log_config_file = abs_file_path('mwr_l12l2/config/log_config.yaml')
+log_config_file = abs_file_path('dl_toolbox_runner/config/log_config.yaml')
 conf = get_log_config(log_config_file)
 
 
