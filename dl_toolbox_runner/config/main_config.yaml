@@ -1,0 +1,28 @@
+# config file for general retrieval settings #
+##############################################
+#
+# the data section contains paths of data files and age of data to consider
+# the vip section contains configurations for the TROPoe retrieval
+# this file defines the settings common to all stations.
+
+# definitions of which data to use for retrieval. Paths are absolute or relative to mwr_l12l2 project dir
+data:
+
+  # maximum age of MWR data to be considered for retrieval in minutes. Set to null for unlimited
+  max_age: 90
+
+  # info on instrument configuration files
+  inst_config_dir: dl_toolbox_runner/config/
+  inst_config_file_prefix: config_
+
+  # location and filenames of output data
+  output_dir: dl_toolbox_runner/data/output/  # directory for output from DL toolbox
+  output_file_prefix: DWL_L1_
+
+  # location and filenames of input E-PROFILE data
+  input_dir: dl_toolbox_runner/data/input/  # directory for raw files form Doppler lidars
+  input_file_prefix: DWL_raw
+
+  # location and filenames of temporary TROPoe files
+  toolbox_confdir: dl_toolbox_runner/data/toolbox/  # base directory where tmp config files for DL toolbox are saved
+
