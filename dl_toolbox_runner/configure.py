@@ -1,3 +1,5 @@
+from dl_toolbox_runner.utils.file_utils import abs_file_path, get_insttype
+
 
 class Configurator(object):
     """Class for setting up config file for usage in DL toolbox run
@@ -12,6 +14,27 @@ class Configurator(object):
     def __init__(self, datafile, configfile):
         self.datafile = datafile
         self.configfile = configfile
+        self.conf = {}
 
     def run(self):
+        self.conf['SYSTEM'] = get_insttype(self.datafile, base_filename='DWL_raw_XXXWL_')
+        self.from_datafile()
+        self.from_sample_config()
+        self.to_file()
+
+    def from_datafile(self):
         pass
+
+    def from_sample_config(self):
+        pass
+
+    def to_file(self):
+        pass
+
+
+if __name__ == '__main__':
+    datafile = abs_file_path('dl_toolbox_runner/data/input/DWL_raw_PAYWL_2023-01-01_00-00-59_dbs_303_50mTP.nc')
+    configfile = abs_file_path('dl_toolbox_runner/data/output/PAYWL_1.conf')
+    x = Configurator(datafile, configfile)
+    x.run()
+    pass
