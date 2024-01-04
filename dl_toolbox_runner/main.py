@@ -1,6 +1,7 @@
 import glob
 import os
 
+from dl_toolbox_runner.configure import Configurator
 from dl_toolbox_runner.errors import DLConfigError
 from dl_toolbox_runner.log import logger
 from dl_toolbox_runner.utils.config_utils import get_main_config
@@ -28,6 +29,7 @@ class Runner(object):
 
     def run(self):
         self.find_files()
+        self.assign_conf()
         pass
 
     def find_files(self, single_process=True):
@@ -46,7 +48,12 @@ class Runner(object):
                                       'is not yet implemented')  # TODO: implement grouping of files with same config
 
     def assign_conf(self):
-        pass
+        """assign a config file for the DL-toolbox run to each bunch of files in self.retrieval_batches"""
+        for ind, batch in enumerate(self.retrieval_batches):
+            filename_conf = self.conf['toolbox_conf_prefix'] + f'{ind:03d}' + self.conf['toolbox_conf_ext']
+            batch['conf'] = os.path.join(self.conf['toolbox_confdir'], filename_conf)
+            tmp_conf = Configurator(batch['files'][0], batch['conf'])  # use first file in batch as reference
+            tmp_conf.run()
 
 
 if __name__ == '__main__':
