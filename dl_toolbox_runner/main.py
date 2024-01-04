@@ -1,3 +1,4 @@
+import glob
 import os
 
 from dl_toolbox_runner.errors import DLConfigError
@@ -30,7 +31,19 @@ class Runner(object):
         pass
 
     def find_files(self, single_process=True):
-        logger.info('looking for files to process')
+        """find files and group them to batches for processing"""
+        files = glob.glob(os.path.join(self.conf['input_dir'], self.conf['input_file_prefix'] + '*'))
+        # TODO: check for file age with conf['max_age']
+        if not files:
+            logger.info(f'Found no files to process in {self.conf["input_dir"]}. Will exit now')
+            exit()
+
+        if single_process:
+            for file in files:
+                self.retrieval_batches.append({'files': [file]})
+        else:
+            raise NotImplementedError('processing multiple files in same batch (single_process=False) '
+                                      'is not yet implemented')  # TODO: implement grouping of files with same config
 
     def assign_conf(self):
         pass
@@ -39,3 +52,4 @@ class Runner(object):
 if __name__ == '__main__':
     x = Runner(abs_file_path('dl_toolbox_runner/config/main_config.yaml'))
     x.run()
+    pass
