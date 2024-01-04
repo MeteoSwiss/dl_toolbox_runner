@@ -34,7 +34,7 @@ def get_main_config(file):
     """get main configuration and check for completeness of config file"""
 
     mandatory_keys = ['max_age', 'output_dir', 'output_file_prefix', 'input_dir', 'input_file_prefix',
-                      'toolbox_confdir']
+                      'toolbox_confdir', 'toolbox_conf_prefix']
     paths = ['output_dir', 'input_dir', 'toolbox_confdir']
 
     conf = get_conf(file)
@@ -74,6 +74,6 @@ def interpret_loglevel(conf):
         conf[level_key] = getattr(logging, conf[level_key].upper(), None)
         if not isinstance(conf[level_key], int):
             raise DLConfigError("value of '{}' in logs config does not correspond to any known logs level of logging"
-                                 .format(level_key))
+                                .format(level_key))
 
     return conf

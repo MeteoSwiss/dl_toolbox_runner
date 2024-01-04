@@ -19,6 +19,6 @@ output_file_prefix: DWL_L1_
 input_dir: dl_toolbox_runner/data/input/  # directory for raw files form Doppler lidars
 input_file_prefix: DWL_raw_
 
-# location and filenames of temporary TROPoe files
-toolbox_confdir: dl_toolbox_runner/data/toolbox/  # base directory where tmp config files for DL toolbox are saved
-
+# location and filenames of temporary DL toolbox conf files
+toolbox_confdir: dl_toolbox_runner/data/toolbox/  # directory where tmp config files for DL toolbox are saved
+toolbox_conf_prefix: tmp_config_
