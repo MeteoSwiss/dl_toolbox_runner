@@ -35,10 +35,12 @@ def get_main_config(file):
 
     mandatory_keys = ['max_age', 'output_dir', 'output_file_prefix', 'input_dir', 'input_file_prefix',
                       'toolbox_confdir']
+    paths = ['output_dir', 'input_dir', 'toolbox_confdir']
 
     conf = get_conf(file)
     check_conf(conf, mandatory_keys,
                'of main config files but is missing in {}'.format(file))
+    conf = to_abspath(conf, paths)
 
     return conf
 
