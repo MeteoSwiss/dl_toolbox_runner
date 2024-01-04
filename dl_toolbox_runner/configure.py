@@ -1,3 +1,4 @@
+from dl_toolbox_runner.errors import MissingConfig
 from dl_toolbox_runner.utils.config_utils import get_conf
 from dl_toolbox_runner.utils.file_utils import abs_file_path, get_insttype, dict_to_file
 
@@ -29,7 +30,10 @@ class Configurator(object):
         pass
 
     def to_file(self):
-        conf_out = {key_out: self.conf[key_in] for key_in, key_out in self.conf_param_match.items()}
+        try:
+            conf_out = {key_out: self.conf[key_in] for key_in, key_out in self.conf_param_match.items()}
+        except KeyError as err:
+            raise MissingConfig(f'missing entry for {err} in config dict')
         dict_to_file(conf_out, self.configfile, '=')
 
 
