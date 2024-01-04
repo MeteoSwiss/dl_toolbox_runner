@@ -30,6 +30,19 @@ def to_abspath(conf, keys):
     return conf
 
 
+def get_main_config(file):
+    """get main configuration and check for completeness of config file"""
+
+    mandatory_keys = ['max_age', 'output_dir', 'output_file_prefix', 'input_dir', 'input_file_prefix',
+                      'toolbox_confdir']
+
+    conf = get_conf(file)
+    check_conf(conf, mandatory_keys,
+               'of main config files but is missing in {}'.format(file))
+
+    return conf
+
+
 def get_log_config(file):
     """get configuration for logger and check for completeness of config file"""
 
