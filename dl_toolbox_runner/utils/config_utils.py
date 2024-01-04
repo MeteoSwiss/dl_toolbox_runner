@@ -30,16 +30,25 @@ def to_abspath(conf, keys):
     return conf
 
 
+def check_ext(conf, keys):
+    """check that keys which should contain file extensions are valid extension including the leading dot"""
+    for key in keys:
+        if conf[key][0] != '.':
+            raise DLConfigError(f'Value of {key} in config file is not a valid file extension. Leading dot is missing.')
+
+
 def get_main_config(file):
     """get main configuration and check for completeness of config file"""
 
     mandatory_keys = ['max_age', 'output_dir', 'output_file_prefix', 'input_dir', 'input_file_prefix',
-                      'toolbox_confdir', 'toolbox_conf_prefix']
+                      'toolbox_confdir', 'toolbox_conf_prefix', 'toolbox_conf_ext']
     paths = ['output_dir', 'input_dir', 'toolbox_confdir']
+    exts = ['toolbox_conf_ext']
 
     conf = get_conf(file)
     check_conf(conf, mandatory_keys,
                'of main config files but is missing in {}'.format(file))
+    check_ext(conf, exts)
     conf = to_abspath(conf, paths)
 
     return conf
