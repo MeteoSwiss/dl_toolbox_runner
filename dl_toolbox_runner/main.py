@@ -30,7 +30,7 @@ class Runner(object):
     def run(self):
         self.find_files()
         self.assign_conf()
-        pass
+        self.run_toolbox()
 
     def find_files(self, single_process=True):
         """find files and group them to batches for processing"""
@@ -54,6 +54,13 @@ class Runner(object):
             batch['conf'] = os.path.join(self.conf['toolbox_confdir'], filename_conf)
             tmp_conf = Configurator(batch['files'][0], batch['conf'])  # use first file in batch as reference
             tmp_conf.run()
+
+    def run_toolbox(self, parallel=False):
+        """run the DL toolbox code on all entries of self.retrieval_batches"""
+        if parallel:
+            raise NotImplementedError('parallel runs of DL_toolbox are not yet implemented')
+        else:
+            pass
 
 
 if __name__ == '__main__':
