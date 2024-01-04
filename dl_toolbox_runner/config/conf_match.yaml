@@ -3,7 +3,7 @@
 
 ############### standard info ###############
 inst_type: SYSTEM  # Identification of Manufacturer (use halo or windcube)
-#SYSTEM_ID  # Serial number or ID given to the system
+serial_nb: SYSTEM_ID  # Serial number or ID given to the system
 #SYSTEM_LONGITUDE  # Geograhic longitude, given in decimal degree
 #SYSTEM_LATITUDE  # Geograhic latitude, given in decimal degree
 #SYSTEM_ALTITUDE  # Altitude position above mean sea level, given in meter
