@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import warnings  # cannot import logger as it would create circular import with abs_file_path, hence use warnings here
 
+import numpy as np
 from hpl2netCDF_client.hpl_files.hpl_files import hpl_files
 
 import dl_toolbox_runner
@@ -17,6 +18,37 @@ def abs_file_path(*file_path):
     if path.is_absolute():
         return path
     return Path(dl_toolbox_runner.__file__).parent.parent / path
+
+
+def dict_to_file(data, file, sep, header=None, remove_brackets=False, remove_parentheses=False, remove_braces=False):
+    """write dictionary contents to a file. One item per line matching keys and values using 'sep'.
+
+    Args:
+        data: dictionary to write to file in question. Numpy 1d-arrays as values are ok, matrices not
+        file: output file incl. path and extension
+        sep: separator sign between key and value as string. Can include whitespaces around separator.
+        header: header string to write to the head of the file before the first dictionary item. Defaults to None
+        remove_brackets (optional): Remove square brackets [ and ], e.g. from lists, while printing to file.
+            Defaults to False
+        remove_parentheses (optional): Remove parentheses ( and ), e.g. from tuples, while printing to file.
+            Defaults to False
+        remove_braces (optional): Remove curly braces { and } while printing to file. Defaults to False
+    """
+
+    with open(file, 'w') as f:
+        if header is not None:
+            f.write(header + '\n')
+        for key, val in data.items():
+            if isinstance(val, np.ndarray):  # ensure numpy arrays are printed with elements separated by commas
+                val = list(val)
+            val = str(val)
+            if remove_brackets:
+                val = val.replace('[', '').replace(']', '')
+            if remove_parentheses:
+                val = val.replace('(', '').replace(')', '')
+            if remove_braces:
+                val = val.replace('{', '').replace('}', '')
+            f.write(sep.join([key, val]) + '\n')
 
 
 def get_insttype(filename, base_filename='DWL_raw_XXXWL_'):
