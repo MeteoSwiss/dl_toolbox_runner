@@ -45,10 +45,12 @@ class Runner(object):
                 self.retrieval_batches.append({'files': [file]})
         else:
             raise NotImplementedError('processing multiple files in same batch (single_process=False) '
-                                      'is not yet implemented')  # TODO: implement grouping of files with same config
+                                      'is not yet implemented')
+            # TODO: implement grouping of files with same config. Possibly easier to be done after assign_conf using
+            #  date and conf
 
     def assign_conf(self):
-        """assign a config file for the DL-toolbox run to each bunch of files in self.retrieval_batches"""
+        """assign a config file for the DL-toolbox run and a date to each bunch of files in self.retrieval_batches"""
         for ind, batch in enumerate(self.retrieval_batches):
             filename_conf = self.conf['toolbox_conf_prefix'] + f'{ind:03d}' + self.conf['toolbox_conf_ext']
             batch['conf'] = os.path.join(self.conf['toolbox_confdir'], filename_conf)
