@@ -4,6 +4,7 @@ poetry.lock
 .coverage
 *.idx
 *log.txt
+playground.py
 dl_toolbox_runner/logs/log*
 .idea/
 .~lock.*

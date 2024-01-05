@@ -1,2 +1,4 @@
 *
+!sample_config
+!sample_config/*.conf
 !.gitignore
