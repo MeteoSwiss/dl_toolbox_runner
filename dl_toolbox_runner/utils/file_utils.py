@@ -51,18 +51,21 @@ def dict_to_file(data, file, sep, header=None, remove_brackets=False, remove_par
             f.write(sep.join([key, val]) + '\n')
 
 
-def get_insttype(filename, base_filename='DWL_raw_XXXWL_'):
+def get_insttype(filename, base_filename='DWL_raw_XXXWL_', return_date=False):
     inst_types_exts = {'windcube': ['.nc'], 'halo': ['.hpl']}  # rely on preserved order of dict (>= python 3.6)
 
     files = [os.path.basename(filename)]
     for tried_type, exts in inst_types_exts.items():
         try:
-            hpl_files.filelist_to_hpl_files(files, tried_type, base_filename)
+            x = hpl_files.filelist_to_hpl_files(files, tried_type, base_filename)
         except ValueError:
             pass
         else:
             if os.path.splitext(files[0])[-1] in exts:
-                return tried_type
+                if return_date:
+                    return tried_type, x.time[0]  # filelist 'files' always has one single element in this function
+                else:
+                    return tried_type
             else:
                 warnings.warn(f"filename would match pattern for '{tried_type}', but extension is not one of the "
                               f"expected ({exts}). Will continue testing other instrument types.")
