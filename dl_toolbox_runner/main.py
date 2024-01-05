@@ -54,7 +54,7 @@ class Runner(object):
             batch['conf'] = os.path.join(self.conf['toolbox_confdir'], filename_conf)
             tmp_conf = Configurator(batch['files'][0], batch['conf'])  # use first file in batch as reference
             tmp_conf.run()
-            batch['date'] = tmp_conf.date.strftime('%Y-%m-%d')
+            batch['date'] = tmp_conf.date.replace(hour=0, minute=0, second=0, microsecond=0)  # floor to the day
 
     def run_toolbox(self, parallel=False):
         """run the DL toolbox code on all entries of self.retrieval_batches"""
