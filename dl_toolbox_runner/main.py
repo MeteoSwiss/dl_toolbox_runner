@@ -64,10 +64,22 @@ class Runner(object):
 
     def run_toolbox(self, parallel=False):
         """run the DL toolbox code on all entries of self.retrieval_batches"""
-        if parallel:
+        if parallel:  # run multiple DL toolboxes in parallel
             raise NotImplementedError('parallel runs of DL_toolbox are not yet implemented')
-        else:
-            pass
+        else:  # execute multiple runs of DL toolbox in sequence
+            for batch in self.retrieval_batches:
+
+                # BEGIN OF HACK for using finished config file
+                import datetime as dt
+                if batch['date'] == dt.datetime.strptime('2023-01-01', '%Y-%m-%d'):
+                    batch['conf'] = abs_file_path('dl_toolbox_runner/data/toolbox/sample_config/PAYWL_DBS_TP.conf')
+                elif batch['date'] == dt.datetime.strptime('2023-02-09', '%Y-%m-%d'):
+                    batch['conf'] = abs_file_path('dl_toolbox_runner/data/toolbox/sample_config/PAYWL_VAD_TP.conf')
+                logger.critical('using hack to attribute sample config file instead of real one in main.run_toolbox')
+                # END OF HACK
+                # TODO: remove hack above when configurator is ready
+
+                self.run_toolbox_single(batch)
 
     @staticmethod
     def run_toolbox_single(batch, cmd='lvl2_from_filelist', cmd_opt_args=('DWL_raw_XXXWL_', )):
