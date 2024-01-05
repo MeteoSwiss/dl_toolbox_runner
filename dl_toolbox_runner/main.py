@@ -72,7 +72,8 @@ class Runner(object):
                 # BEGIN OF HACK for using finished config file
                 import datetime as dt
                 if batch['date'] == dt.datetime.strptime('2023-01-01', '%Y-%m-%d'):
-                    batch['conf'] = abs_file_path('dl_toolbox_runner/data/toolbox/sample_config/PAYWL_DBS_TP.conf')
+                    batch['conf'] = abs_file_path('dl_toolbox_runner/data/toolbox/sample_config/PAYWL_DBS_TP_dev.conf')  # for testing possibility for default vals
+                    # batch['conf'] = abs_file_path('dl_toolbox_runner/data/toolbox/sample_config/PAYWL_DBS_TP.conf')
                 elif batch['date'] == dt.datetime.strptime('2023-02-09', '%Y-%m-%d'):
                     batch['conf'] = abs_file_path('dl_toolbox_runner/data/toolbox/sample_config/PAYWL_VAD_TP.conf')
                 logger.critical('using hack to attribute sample config file instead of real one in main.run_toolbox')

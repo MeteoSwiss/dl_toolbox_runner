@@ -1,59 +1,59 @@
-param; essential; source; varying; descritpion
+param; essential; source; varying; comments; descritpion
 ############### standard info ###############
-SYSTEM; True; config or filename; True; Identification of Manufacturer (use halo or windcube)
-SYSTEM_ID; False; data; True; Serial number or ID given to the system
-SYSTEM_LONGITUDE; False; data; True; Geograhic longitude, given in decimal degree
-SYSTEM_LATITUDE; False; data; True; Geograhic latitude, given in decimal degree
-SYSTEM_ALTITUDE; False; data; True; Altitude position above mean sea level, given in meter
-UTC_offset; False; config or hardcode; False; UTC offset, this argument is optional! (NOTE: be careful when setting this offset, check with the lvl-1 and lvl-2 netCDF-files, respectively.)
-SYSTEM_WAVELENGTH; True; data; True; Laser wavelength of the system, given in meter
-PULS_DURATION; True; data; True; Pulse duration/length, i.e. FWHM duration, given in seconds
-NUMBER_OF_GATES; True; data; True; Number of range gates in files (Note: can also be inferred from individual lvl-1 files)
-RANGE_GATE_LENGTH; True; data or filename; True; Length if range gate, given in meter
-NUMBER_OF_GATE_POINTS; True; data; True; Number of points that make up a range gate in the time domain
-BLINDEZONE_GATES; True; config; True; Number of bottom range gates to exclude in the L2-Product (default 0)
-OVERLAPPING_GATES; True; data or config; True; optional argument stating whether the gated information contains overlapping range gates. (use 0 for False and 1 for True)
-PULSES_PER_DIRECTION; True; config or data; True; Number of laser shots used for avaraging (Note: please make sure this number is equal to the one specified in the scan modus)
-NUMBER_OF_DIRECTIONS; True; data or config; True; Number of different azimuth directions, that should be used in the wind retrieval
-PULS_REPETITION_FREQ; True; data or config; True; Rate of consecutive laser shots
-SCAN_TYPE; True; filename; True; Possible scan types: 'VAD', 'DBS', 'RHI' or 'User' for other (should match the hpl-File name, use either for windcube)
-FOCUS; True; config or data; True; Telescope focus, given in meter (Note: 65535 implies that the focus is at infinity, only for Halo-Systems)
-FFT_POINTS; True; config or data; True; Number of FFT points used in the radial wind measurements
-VELOCITY_RESOLUTION; True; config; True; The best possible resolution of consecutive velocity estimates, given in m*s^-1
-VERSION; True; config; False; Version number of client, please check it (default 04)
-AVG_MIN; True; config; True; Temporal interval to use for wind retrieval, given in minutes
-CN_THRESHOLD; True; config; False; Threshold used for acceptable condition numbers in the mean wind retrieval
-CNS_RANGE; True; config; False; Maximal range, stating wether to radial velocities are consistent with each other, given in m*s^-1
-CNS_PERCENTAGE; True; config; False; Percentage threshold used to infer acceptable consensus averages, given in percent
-SNR_THRESHOLD; True; config; False; Threshold used for SNR filtering of data points, given in dB (Note: '0' implies that no threshold should be used.)
-N_VRAD_THRESHOLD; True; config; False; Minimal number of radial velocities that differ in their azimuth required for the retrieval
-R2_THRESHOLD; True; config; False; Minimal threshold for the coefficient of determination to accept retrieved mean winds
+SYSTEM; True; filename; True; ; Identification of Manufacturer (use halo or windcube)
+SYSTEM_ID; False; data; True; ; Serial number or ID given to the system
+SYSTEM_LONGITUDE; True; data; True; ; Geograhic longitude, given in decimal degree
+SYSTEM_LATITUDE; True; data; True; ; Geograhic latitude, given in decimal degree
+SYSTEM_ALTITUDE; True; data; True; ; Altitude position above mean sea level, given in meter
+UTC_offset; False; hardcode; False; ; UTC offset, this argument is optional! (NOTE: be careful when setting this offset, check with the lvl-1 and lvl-2 netCDF-files, respectively.)
+SYSTEM_WAVELENGTH; True; data; True; ; Laser wavelength of the system, given in meter
+PULS_DURATION; True; data; True; ; Pulse duration/length, i.e. FWHM duration, given in seconds
+NUMBER_OF_GATES; True; data; True; ; Number of range gates in files (Note: can also be inferred from individual lvl-1 files)
+RANGE_GATE_LENGTH; True; data or filename; True; ; Length if range gate, given in meter
+NUMBER_OF_GATE_POINTS; True; data; True; not needed in some cases; Number of points that make up a range gate in the time domain
+BLINDEZONE_GATES; False; config; True; ; Number of bottom range gates to exclude in the L2-Product (default 0)
+OVERLAPPING_GATES; False; data or config; True; ; optional argument stating whether the gated information contains overlapping range gates. (use 0 for False and 1 for True)
+PULSES_PER_DIRECTION; True; data; True; not needed in some cases; Number of laser shots used for avaraging (Note: please make sure this number is equal to the one specified in the scan modus)
+NUMBER_OF_DIRECTIONS; True; data or config; True; ; Number of different azimuth directions, that should be used in the wind retrieval
+PULS_REPETITION_FREQ; True; data or config; True; not needed in some cases; Rate of consecutive laser shots
+SCAN_TYPE; True; filename; True; ; Possible scan types: 'VAD', 'DBS', 'RHI' or 'User' for other (should match the hpl-File name, use either for windcube)
+FOCUS; True; config or data; True; not needed in some cases; Telescope focus, given in meter (Note: 65535 implies that the focus is at infinity, only for Halo-Systems)
+FFT_POINTS; True; config or data; True; ; Number of FFT points used in the radial wind measurements
+VELOCITY_RESOLUTION; False; config; True; unused by DL toolbox; The best possible resolution of consecutive velocity estimates, given in m*s^-1
+VERSION; True; config; False; not matching version in version.py used by setup.py of DL-toolbox; Version number of client, please check it (default 04)
+AVG_MIN; True; config; True; causes missing directions in some cases if lower than 12 min. suggest to leave at 30; Temporal interval to use for wind retrieval, given in minutes
+CN_THRESHOLD; True; config; False; ; Threshold used for acceptable condition numbers in the mean wind retrieval
+CNS_RANGE; True; config; False; ; Maximal range, stating wether to radial velocities are consistent with each other, given in m*s^-1
+CNS_PERCENTAGE; True; config; False; ; Percentage threshold used to infer acceptable consensus averages, given in percent
+SNR_THRESHOLD; True; config; False; ; Threshold used for SNR filtering of data points, given in dB (Note: '0' implies that no threshold should be used.)
+N_VRAD_THRESHOLD; True; config; False; ; Minimal number of radial velocities that differ in their azimuth required for the retrieval
+R2_THRESHOLD; True; config; False; ; Minimal threshold for the coefficient of determination to accept retrieved mean winds
 ################# needed paths ##############
-PROC_PATH; False; config; False; Please state where to find the individual lvl-1 files (not needed for lvl2_from_filelist)
-NC_L1_PATH; False; config; False; Please state the location of the level-1 netCDF files (not needed for lvl2_from_filelist)
-NC_L1_BASENAME; False; config; True; Please state the level-1 file name, following SAMD convention (see: https://icdc.cen.uni-hamburg.de/projekte/samd.html) (not needed for lvl2_from_filelist)
-NC_L2_PATH; True; config; False; Please state the location of the level-2 netCDF files
-NC_L2_BASENAME; True; config; True; Please state the level-1 file name, following SAMD convention (see: https://icdc.cen.uni-hamburg.de/projekte/samd.html)
-NC_L2_QL_PATH; False; config; False; Please state the location of quicklook files (currently only for mean wind) (not needed for lvl2_from_filelist)
+PROC_PATH; False; config; False; not needed for lvl2_from_filelist. might set to dummy val for other cmds; Please state where to find the individual lvl-1 files (not needed for lvl2_from_filelist)
+NC_L1_PATH; False; config; False; not needed for lvl2_from_filelist. might set to dummy val for other cmds; Please state the location of the level-1 netCDF files (not needed for lvl2_from_filelist)
+NC_L1_BASENAME; False; config; True; not needed for lvl2_from_filelist. might set to dummy val for other cmds; Please state the level-1 file name, following SAMD convention (see: https://icdc.cen.uni-hamburg.de/projekte/samd.html) (not needed for lvl2_from_filelist)
+NC_L2_PATH; True; config; False; ; Please state the location of the level-2 netCDF files
+NC_L2_BASENAME; True; config; True; ; Please state the level-1 file name, following SAMD convention (see: https://icdc.cen.uni-hamburg.de/projekte/samd.html)
+NC_L2_QL_PATH; False; config; False; not needed for lvl2_from_filelist. might set to dummy val for other cmds; Please state the location of quicklook files (currently only for mean wind) (not needed for lvl2_from_filelist)
 ################## global attributes ################
-NC_TITLE; False; dummy; True; Please state the netCDF title
-NC_INSTITUTION; False; dummy; True; Please state the name of your institution, company or angency
-NC_SITE_LOCATION; False; dummy; True; Please state the instruments location here
-NC_INSTRUMENT_CONTACT; False; dummy; True; If allowed, please state the name of a contact person or contact office (please do not include invidual names here)
-NC_INSTRUMENT_ID; False; dummy; True; Instrument identifier, possibly coincides with the system id
-NC_SOURCE; False; dummy; True; Specifier source of data
-NC_INSTRUMENT_TYPE; False; dummy; True; Type of instrument, i.e. commercial name
-NC_INSTRUMENT_MODE; False; dummy; True; Mode specificier
-NC_INSTRUMENT_SERIAL_NUMBER; False; dummy; True; Serial number of instrument
-NC_HISTORY; True; config; False; Brief description of the created netCDF files (e.g. Data processed by E-PROFILE with wl2netCDF-client)
-NC_INSTRUMENT_FIRMWARE_VERSION; False; dummy; True; Instrument firmware, if known
-NC_CONVENTIONS; True; config; False; What CF-convention is used (CF-1.8)
-NC_DATA_POLICY; False; dummy; False; Data usage, additional
-NC_COMMENTS; False; dummy; True; Additional comments
-NC_WIGOS_STATION_ID; False; dummy; True; IGOS Station Identifier (format X-XXXXX-X-XXXXX)
-NC_WMO_ID; False; dummy; True; WMO station number (format XXXXX)
-NC_REFERENCES; False; dummy; True; Further reference descriptor
-NC_PI_ID; False; dummy; True; Department responsible for the instrument (please do not include invidual names here)
-NC_DATA_BLOCKING_STATUS; False; dummy; True; Blocking statur, only important for operational use
+NC_TITLE; True; dummy; True; ; Please state the netCDF title
+NC_INSTITUTION; True; dummy; True; ; Please state the name of your institution, company or angency
+NC_SITE_LOCATION; True; dummy; True; ; Please state the instruments location here
+NC_INSTRUMENT_CONTACT; True; dummy; True; ; If allowed, please state the name of a contact person or contact office (please do not include invidual names here)
+NC_INSTRUMENT_ID; True; config; True; N/A; Instrument identifier, possibly coincides with the system id
+NC_SOURCE; True; config; True; ground based remote sensing; Specifier source of data
+NC_INSTRUMENT_TYPE; True; dummy; True; ; Type of instrument, i.e. commercial name
+NC_INSTRUMENT_MODE; True; config; True; N/A; Mode specificier
+NC_INSTRUMENT_SERIAL_NUMBER; True; dummy; True; ; Serial number of instrument
+NC_HISTORY; True; config; False; Data processed by E-PROFILE with wl2netCDF-client; Brief description of the created netCDF files (e.g. Data processed by E-PROFILE with wl2netCDF-client)
+NC_INSTRUMENT_FIRMWARE_VERSION; True; dummy or data; True; should possibly infer from datafile; Instrument firmware, if known
+NC_CONVENTIONS; True; config; False; CF-1.8; What CF-convention is used (CF-1.8)
+NC_DATA_POLICY; True; config; False; Closed-Use Non-Commercial General Licence 1.0 (CUNCGL); Data usage, additional
+NC_COMMENTS; True; dummy; True; ; Additional comments
+NC_WIGOS_STATION_ID; True; dummy; True; ; IGOS Station Identifier (format X-XXXXX-X-XXXXX)
+NC_WMO_ID; True; dummy; True; ; WMO station number (format XXXXX)
+NC_REFERENCES; True; dummy; True; ; Further reference descriptor
+NC_PI_ID; True; dummy; True; ; Department responsible for the instrument (please do not include invidual names here)
+NC_DATA_BLOCKING_STATUS; True; config; True; undefined; Blocking statur, only important for operational use
 ###################################################
-OPERATIONAL; True; config; False; optional arguments used in an operational setup (use 0 for False and 1 for True)
+OPERATIONAL; False; config; False; ; optional arguments used in an operational setup (use 0 for False and 1 for True)
