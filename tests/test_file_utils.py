@@ -8,7 +8,7 @@ class TestFileUtils(unittest.TestCase):
 
     def test_get_insttype(self):
         """Test for get_insttype function"""
-        testfile_wc = 'dl_toolbox_runner/data/input/DWL_raw_PAYWL_2023-01-01_00-00-59_dbs_303_50mTP.nc'
+        testfile_wc = 'dl_toolbox_runner/data/input/DWL_raw_PAYWL_2023-01-01_00-06-12_dbs_303_50mTP.nc'
         self.assertEqual(get_insttype(testfile_wc), 'windcube')
         self.assertEqual(get_insttype(abs_file_path(testfile_wc)), 'windcube')
 

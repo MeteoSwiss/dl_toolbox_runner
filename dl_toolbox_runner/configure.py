@@ -38,7 +38,7 @@ class Configurator(object):
 
 
 if __name__ == '__main__':
-    datafile = abs_file_path('dl_toolbox_runner/data/input/DWL_raw_PAYWL_2023-01-01_00-00-59_dbs_303_50mTP.nc')
+    datafile = abs_file_path('dl_toolbox_runner/data/input/DWL_raw_PAYWL_2023-01-01_00-06-12_dbs_303_50mTP.nc')
     configfile = abs_file_path('dl_toolbox_runner/data/output/PAYWL_1.conf')
     x = Configurator(datafile, configfile)
     x.run()
