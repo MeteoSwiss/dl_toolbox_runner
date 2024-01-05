@@ -1,6 +1,8 @@
 import glob
 import os
 
+from hpl2netCDF_client.hpl2netCDF_client import hpl2netCDFClient
+
 from dl_toolbox_runner.configure import Configurator
 from dl_toolbox_runner.errors import DLConfigError
 from dl_toolbox_runner.log import logger
@@ -34,6 +36,7 @@ class Runner(object):
 
     def find_files(self, single_process=True):
         """find files and group them to batches for processing"""
+
         files = glob.glob(os.path.join(self.conf['input_dir'], self.conf['input_file_prefix'] + '*'))
         # TODO: check for file age with conf['max_age']
         if not files:
@@ -51,6 +54,7 @@ class Runner(object):
 
     def assign_conf(self):
         """assign a config file for the DL-toolbox run and a date to each bunch of files in self.retrieval_batches"""
+
         for ind, batch in enumerate(self.retrieval_batches):
             filename_conf = self.conf['toolbox_conf_prefix'] + f'{ind:03d}' + self.conf['toolbox_conf_ext']
             batch['conf'] = os.path.join(self.conf['toolbox_confdir'], filename_conf)
@@ -64,6 +68,14 @@ class Runner(object):
             raise NotImplementedError('parallel runs of DL_toolbox are not yet implemented')
         else:
             pass
+
+    @staticmethod
+    def run_toolbox_single(batch, cmd='lvl2_from_filelist', cmd_opt_args=('DWL_raw_XXXWL_', )):
+        """do one run of DL toolbox on a single batch of files"""
+
+        proc_dl = hpl2netCDFClient(batch['conf'], cmd, batch['date'])
+        cmd_func = getattr(proc_dl, cmd)
+        cmd_func(batch['files'], *cmd_opt_args)
 
 
 if __name__ == '__main__':
