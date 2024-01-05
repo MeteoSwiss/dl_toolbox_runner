@@ -20,9 +20,11 @@ class Configurator(object):
         self.datafile = datafile
         self.configfile = configfile
         self.conf_param_match = get_conf(abs_file_path(file_conf_param_match))
+        self.date = None  # datetime.datetime object for timesteamp of datafile
 
     def run(self):
-        self.conf['inst_type'] = get_insttype(self.datafile, base_filename='DWL_raw_XXXWL_')
+        self.conf['inst_type'], self.date = get_insttype(self.datafile, base_filename='DWL_raw_XXXWL_',
+                                                         return_date=True)
         self.from_datafile()
         self.to_file()
 

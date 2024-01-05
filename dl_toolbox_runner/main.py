@@ -24,7 +24,7 @@ class Runner(object):
             logger.error("The argument 'conf' must be a conf dictionary or a path pointing to a config file")
             raise DLConfigError("The argument 'conf' must be a conf dictionary or a path pointing to a config file")
 
-        self.retrieval_batches = []  # list of dicts with keys 'files' and 'conf'
+        self.retrieval_batches = []  # list of dicts with keys 'date', 'files' and 'conf'
         # TODO harmonise file naming with mwr_l12l2 retrieval_batches is called retrieval_dict there
 
     def run(self):
@@ -54,6 +54,7 @@ class Runner(object):
             batch['conf'] = os.path.join(self.conf['toolbox_confdir'], filename_conf)
             tmp_conf = Configurator(batch['files'][0], batch['conf'])  # use first file in batch as reference
             tmp_conf.run()
+            batch['date'] = tmp_conf.date.strftime('%Y-%m-%d')
 
     def run_toolbox(self, parallel=False):
         """run the DL toolbox code on all entries of self.retrieval_batches"""
