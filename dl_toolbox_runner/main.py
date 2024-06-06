@@ -58,7 +58,7 @@ class Runner(object):
         for ind, batch in enumerate(self.retrieval_batches):
             filename_conf = self.conf['toolbox_conf_prefix'] + f'{ind:03d}' + self.conf['toolbox_conf_ext']
             batch['conf'] = os.path.join(self.conf['toolbox_confdir'], filename_conf)
-            tmp_conf = Configurator(batch['files'][0], batch['conf'])  # use first file in batch as reference
+            tmp_conf = Configurator(batch['files'][0], batch['conf'], self.conf)  # use first file in batch as reference
             tmp_conf.run()
             batch['date'] = tmp_conf.date.replace(hour=0, minute=0, second=0, microsecond=0)  # floor to the day
 
@@ -68,17 +68,6 @@ class Runner(object):
             raise NotImplementedError('parallel runs of DL_toolbox are not yet implemented')
         else:  # execute multiple runs of DL toolbox in sequence
             for batch in self.retrieval_batches:
-
-                # BEGIN OF HACK for using finished config file
-                import datetime as dt
-                if batch['date'] == dt.datetime.strptime('2023-01-01', '%Y-%m-%d'):
-                    batch['conf'] = abs_file_path('dl_toolbox_runner/data/toolbox/sample_config/PAYWL_DBS_TP_dev.conf')  # for testing possibility for default vals
-                    # batch['conf'] = abs_file_path('dl_toolbox_runner/data/toolbox/sample_config/PAYWL_DBS_TP.conf')
-                elif batch['date'] == dt.datetime.strptime('2023-02-09', '%Y-%m-%d'):
-                    batch['conf'] = abs_file_path('dl_toolbox_runner/data/toolbox/sample_config/PAYWL_VAD_TP.conf')
-                logger.critical('using hack to attribute sample config file instead of real one in main.run_toolbox')
-                # END OF HACK
-                # TODO: remove hack above when configurator is ready
 
                 self.run_toolbox_single(batch)
 
