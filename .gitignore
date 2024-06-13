@@ -8,6 +8,7 @@ playground.py
 dl_toolbox_runner/logs/log*
 .idea/
 .~lock.*
+.vscode
 
 offline/
 dist/
