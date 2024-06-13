@@ -1,7 +1,9 @@
 import unittest
 
+import xarray as xr
+
 from dl_toolbox_runner.errors import FilenameError
-from dl_toolbox_runner.utils.file_utils import abs_file_path, get_insttype
+from dl_toolbox_runner.utils.file_utils import abs_file_path, get_insttype, rewrite_time_reference_units
 
 
 class TestFileUtils(unittest.TestCase):
@@ -15,4 +17,10 @@ class TestFileUtils(unittest.TestCase):
         testfile_halo = 'DWL_raw_LINWL_20110108_160345.hpl'
         self.assertEqual(get_insttype(testfile_halo), 'halo')
 
-        self.assertRaises(FilenameError, get_insttype, 'DWL_raw_LINWL_20110108_160345.abc')
+        self.assertRaises(FilenameError, get_insttype, 'DWL_raw_LINWL_20110108_160345.abc') 
+        
+    def test_rewrite_time_reference_units(self):
+        """Test for rewrite_time_reference_units function"""
+        testfile = abs_file_path('dl_toolbox_runner/data/input/DWL_raw_GREWL_2024-06-13_02-44-18_dbs_183_50m.nc')
+        ds = rewrite_time_reference_units(testfile, group_name='Sweep_5339')
+        self.assertIsInstance(ds, xr.Dataset)
