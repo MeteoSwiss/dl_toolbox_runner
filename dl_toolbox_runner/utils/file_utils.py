@@ -3,6 +3,7 @@ from pathlib import Path
 import warnings  # cannot import logger as it would create circular import with abs_file_path, hence use warnings here
 
 import numpy as np
+import xarray as xr
 from hpl2netCDF_client.hpl_files.hpl_files import hpl_files
 
 import dl_toolbox_runner
@@ -74,7 +75,23 @@ def get_insttype(filename, base_filename='DWL_raw_XXXWL_', return_date=False):
     msg = f'filename pattern does not correspond to any of the known instrument types ({list(inst_types_exts.keys())})'
     raise FilenameError(msg)
 
+def rewrite_time_reference_units(filename, group_name='Sweep'):
+    '''
+    Rewrite the time reference of the dataset to the standard reference
+    This is sometimes necessary as the time reference is not always correctly set, especially it seems that some files 
+    have the time_reference variable in the group Sweep whereas some have it in the main group.
+    '''
+    # Open the ds without time decoding
+    ds = xr.open_dataset(filename, group=group_name, decode_times=False)
+    
+    encoding = str(ds.time_reference.data)
+    new_encoding = ds.time.units.replace('time_reference', encoding)
+    ds.time.encoding['units'] = new_encoding
+
+    #ds_decoded = xr.decode_cf(ds)
+    return ds
+    
 
 if __name__ == '__main__':
-    inst_type = get_insttype(abs_file_path('dl_toolbox_runner/data/input/DWL_raw_PAYWL_2023-01-01_00-00-59_dbs_303_50mTP.hpl'))
+    inst_type = get_insttype(abs_file_path('dl_toolbox_runner/data/input/DWL_raw_PAYWL_2023-01-01_00-00-59_dbs_303_50mTP.nc'))
     print(inst_type)
