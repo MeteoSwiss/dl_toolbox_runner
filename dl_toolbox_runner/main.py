@@ -17,7 +17,7 @@ class Runner(object):
         conf: configuration file or dictionary. Example in dl_toolbox_runner/config/main_config.yaml
     """
 
-    def __init__(self, conf):
+    def __init__(self, conf, single_process=False):
         if isinstance(conf, dict):
             self.conf = conf
         elif os.path.isfile(conf):
@@ -27,11 +27,13 @@ class Runner(object):
             raise DLConfigError("The argument 'conf' must be a conf dictionary or a path pointing to a config file")
 
         self.retrieval_batches = []  # list of dicts with keys 'date', 'files' and 'conf' #EDIT: added 'instrument_id' and 'scan_type'
+        self.single_process = single_process  # if True, create one batch per file, if False, group files with same instrument_id and scan_type
         # TODO harmonise file naming with mwr_l12l2 retrieval_batches is called retrieval_dict there
 
     def run(self):
+        logger.info('Searching for files to process')
         self.find_files()
-        self.batch_files(single_process=False)
+        self.batch_files(single_process=self.single_process)
         self.assign_conf()
         self.run_toolbox()
 
@@ -117,6 +119,6 @@ class Runner(object):
 
 
 if __name__ == '__main__':
-    x = Runner(abs_file_path('dl_toolbox_runner/config/main_config.yaml'))
+    x = Runner(abs_file_path('dl_toolbox_runner/config/main_config.yaml'), single_process=False)
     x.run()
     pass
