@@ -1,0 +1,132 @@
+# default configurations for config file passed to DL-toolbox
+
+serial_nb: null
+
+# Some default congig, per instrument or instrument type ??
+
+###########################################
+###############standard info###############
+###########################################
+# Identification of Manufacturer (use halo or windcube)
+system :  windcube
+# Serial number or ID given to the system
+# SYSTEM_ID: None
+# Geograhic longitude, given in decimal degree
+# system_longitude : 6.9429
+# # Geograhic latitude, given in decimal degree
+# system_latitude: 46.81275
+# # Altitude position above mean sea level, given in meter
+# system_altitude : 495.0
+# UTC offset, this argument is optional! (NOTE: be careful when setting this offset, check with the lvl-1 and lvl-2 netCDF-files, respectively.)
+# UTC_offset: 0
+# Laser wavelength of the system, given in meter
+system_wavelength : 1.552e-6
+# Pulse duration/length, i.e. FWHM duration, given in seconds
+puls_duration :  4.01e-7
+# Number of range gates in files (Note: can also be inferred from individual lvl-1 files)
+# number_of_gates : 284
+# Length if range gate, given in meter
+# range_gate_lenth : 50
+# Number of points that make up a range gate in the time domain
+# number_of_gate_points: 1
+# Number of bottom range gates to exclude in the L2-Product
+# blindezone_gates:     0
+
+############################################################################################################################
+#optional argument stating whether the gated information contains overlapping range gates. (use 0 for False and 1 for True)#
+############################################################################################################################
+# overlapping_gates: 0
+############################################################################################################################
+# Number of laser shots used for avaraging (Note: please make sure this number is equal to the one specified in the scan modus)
+# PULSES_PER_DIRECTION: 30000
+# Number of different azimuth directions, that should be used in the wind retrieval
+number_of_direction: 4
+# Rate of consecutive laser shots
+# PULS_REPETITION_FREQ: 10000.
+# Possible scan types: 'VAD', 'DBS', 'RHI' or 'User' for other (should match the hpl-File name; use either for windcube)
+# scan_type:  DBS_TP
+# Telescope focus, given in meter (Note: 65535 implies that the focus is at infinity, only for Halo-Systems) 
+# FOCUS:  1500
+# Number of FFT points used in the radial wind measurements
+FFT_points:  1024
+# The best possible resolution of consecutive velocity estimates, given in m*s^-1
+# VELOCITY_RESOLUTION: 0.0382
+# Version number of client, please check it
+version:  04
+# Temporal interval to use for wind retrieval, given in minutes
+avg_min:  30
+# Threshold used for acceptable condition numbers in the mean wind retrieval
+cn_threshold:  10
+# Maximal range, stating wether to radial velocities are consistent with each other, given in m*s^-1
+CNS_range:  3
+# Percentage threshold used to infer acceptable consensus averages, given in percent
+CNS_percentage:  60
+# Threshold used for SNR filtering of data points, given in dB (Note: '0' implies that no threshold should be used.)
+SNR_threshold:  0
+# Minimal number of radial velocities that differ in their azimuth required for the retrieval
+N_vrad_threshold: 3
+# Minimal threshold for the coefficient of determination to accept retrieved mean winds
+R2_threshold:  0.95
+###########################################
+#################needed paths##############
+###########################################
+# Please state where to find the individual lvl-1 files
+# PROC_PATH: /home/ruf/Desktop/dl_toolbox_test_data/data_prepared/MeteoSwiss/Payerne/
+# Please state the location of the level-1 netCDF files
+# NC_L1_PATH: /home/ruf/Desktop/dl_toolbox_test_data/data_prepared/MeteoSwiss/output/L1/
+# Please state the level-1 file name, following SAMD convention (see: https://icdc.cen.uni-hamburg.de/projekte/samd.html)
+# NC_L1_BASENAME: WCS_MeteoSwiss_Payerne_DBS_TP_L1_
+# Please state the location of the level-2 netCDF files
+#NC_L2_path: /home/eric/dl_toolbox_runner/dl_toolbox_runner/data/output/
+# Please state the level-1 file name, following SAMD convention (see: https://icdc.cen.uni-hamburg.de/projekte/samd.html)
+#NC_L2_basename: DWL_L1_PAYWL_
+# Please state the location of quicklook files (currently only for mean wind)
+# NC_L2_ql_path: /home/eric/dl_toolbox_runner/dl_toolbox_runner/data/output/
+
+###################################################
+##################global attributes################
+###################################################
+# Please state the netCDF title
+NC_title:   SET BY HUB
+# Please state the name of your institution, company or angency
+NC_institution:   SET BY HUB
+# Please state the instruments location here
+NC_site_location: SET BY HUB
+# If allowed, please state the name of a contact person or contact office (please do not include invidual names here)
+NC_instrument_contact: SET BY HUB
+# Instrument identifier, possibly coincides with the system id
+# NC_instrument_id: PAYWL
+# Specifier source of data
+NC_source:  ground based remote sensing
+# Type of instrument, i.e. commercial name
+NC_instrument_type: SET BY HUB
+# Mode specificier
+NC_instrument_mode: N/A
+# Serial number of instrument
+NC_instrument_serial_number: SET BY HUB
+# Brief description of the created netCDF files
+NC_history:  Data processed by E-PROFILE with wl2netCDF-client
+# Instrument firmware, if known
+NC_instrument_firmware_version: N/A
+# What CF-convention is used
+NC_conventions:  CF-1.8
+# Data usage, additional
+NC_data_policy:  Closed-Use Non-Commercial General Licence 1.0 (CUNCGL)
+# Additional comments
+NC_comments:  no comments
+###################################################
+##optional arguments used in an operational setup##
+###################################################
+###########use 0 for False and 1 for True##########
+# OPERATIONAL:  0
+###################################################
+# WIGOS Station Identifier (format X-XXXXX-X-XXXXX)
+NC_WIGOS_station_id: SET BY HUB
+# WMO station number (format XXXXX)
+NC_WMO_id:  SET BY HUB
+# Further reference descriptor
+NC_references:  E-Profile data format description
+# Department responsible for the instrument (please do not include invidual names here)
+NC_PI_ID:  N/A
+# Blocking statur, only important for operational use
+NC_data_blocking_status: undefined
