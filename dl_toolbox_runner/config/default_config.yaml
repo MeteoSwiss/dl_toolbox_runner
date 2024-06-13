@@ -1,3 +1,49 @@
 # default configurations for config file passed to DL-toolbox
 
 serial_nb: null
+
+###################################################
+##################global attributes################
+###################################################
+# Please state the netCDF title
+NC_title:   SET BY HUB
+# Please state the name of your institution, company or angency
+NC_institution:   SET BY HUB
+# Please state the instruments location here
+NC_site_location: SET BY HUB
+# If allowed, please state the name of a contact person or contact office (please do not include invidual names here)
+NC_instrument_contact: SET BY HUB
+# Specifier source of data
+NC_source:  ground based remote sensing
+# Type of instrument, i.e. commercial name
+NC_instrument_type: SET BY HUB
+# Mode specificier
+NC_instrument_mode: N/A
+# Serial number of instrument
+NC_instrument_serial_number: SET BY HUB
+# Brief description of the created netCDF files
+NC_history:  Data processed by E-PROFILE with wl2netCDF-client
+# Instrument firmware, if known
+NC_instrument_firmware_version: N/A
+# What CF-convention is used
+NC_conventions:  CF-1.8
+# Data usage, additional
+NC_data_policy:  Closed-Use Non-Commercial General Licence 1.0 (CUNCGL)
+# Additional comments
+NC_comments:  no comments
+###################################################
+##optional arguments used in an operational setup##
+###################################################
+###########use 0 for False and 1 for True##########
+# OPERATIONAL:  0
+###################################################
+# WIGOS Station Identifier (format X-XXXXX-X-XXXXX)
+NC_WIGOS_station_id: SET BY HUB
+# WMO station number (format XXXXX)
+NC_WMO_id:  SET BY HUB
+# Further reference descriptor
+NC_references:  E-Profile data format description
+# Department responsible for the instrument (please do not include invidual names here)
+NC_PI_ID:  N/A
+# Blocking statur, only important for operational use
+NC_data_blocking_status: undefined
