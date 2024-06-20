@@ -1,5 +1,8 @@
 import glob
 import os
+import re
+import time
+import datetime
 
 from hpl2netCDF_client.hpl2netCDF_client import hpl2netCDFClient
 
@@ -30,23 +33,37 @@ class Runner(object):
         self.single_process = single_process  # if True, create one batch per file, if False, group files with same instrument_id and scan_type
         # TODO harmonise file naming with mwr_l12l2 retrieval_batches is called retrieval_dict there
 
-    def run(self):
+    def run(self, dry_run=False, instrument_id=None, date_end=None):
+        start = time.time()
         logger.info('Searching for files to process')
-        self.find_files()
-        self.batch_files(single_process=self.single_process)
+        self.find_files(instrument_id=instrument_id)
+        logger.info('Grouping files to batches')
+        self.batch_files(single_process=self.single_process, date_end=date_end)
+        logger.info('Assigning config files to batches')
         self.assign_conf()
-        self.run_toolbox()
+        logger.info(f'Time taken to write the config files: {time.time()-start:.1f} seconds')
 
-    def find_files(self):
+        if not dry_run:
+            logger.info('Running DL-toolbox for the batches')
+            self.run_toolbox()
+        else:
+            logger.info('Dry run, only creating the config files')
+            
+
+    def find_files(self, instrument_id=None):
         """find files and group them to batches for processing"""
+        if instrument_id:
+            logger.info(f'Searching files for instrument {instrument_id}')
+            self.files = glob.glob(os.path.join(self.conf['input_dir'], self.conf['input_file_prefix'] + f'{instrument_id}*'))
+        else:
+            logger.info('Searching all files in input directory')
+            self.files = glob.glob(os.path.join(self.conf['input_dir'], self.conf['input_file_prefix'] + '*'))
 
-        self.files = glob.glob(os.path.join(self.conf['input_dir'], self.conf['input_file_prefix'] + '*'))
-        # TODO: check for file age with conf['max_age']
         if not self.files:
             logger.info(f'Found no files to process in {self.conf["input_dir"]}. Will exit now')
             exit()
         
-    def batch_files(self, single_process=True):
+    def batch_files(self, single_process=True, date_end=None):
         '''
         group files to batches for processing
         
@@ -60,6 +77,23 @@ class Runner(object):
             file_dict[file] = {}
             idx_id = file.find(self.conf['input_file_prefix'])+len(self.conf['input_file_prefix'])
             file_dict[file]['instrument_id'] = file[idx_id:idx_id+5]
+
+            # check for file age with conf['max_age']
+            file_datestring = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}', file)
+            file_datetime =  datetime.datetime.strptime(file_datestring.group(), '%Y-%m-%d_%H-%M-%S')
+  
+            if self.conf['max_age']:
+                if date_end:
+                    datetime_end = datetime.datetime.strptime(date_end, '%Y-%m-%d_%H-%M-%S')
+                    # check if file date is between date_end - max_age and date_end
+                    if (file_datetime < datetime_end - datetime.timedelta(minutes=self.conf['max_age'])) or (file_datetime > datetime_end):
+                        continue
+                elif self.conf['max_age']:
+                    # check if file date within now and max_age
+                    if file_datetime < datetime.datetime.now() - datetime.timedelta(minutes=self.conf['max_age']):
+                        continue
+            else:
+                pass
                 
             # scan type:
             if 'dbs' in file:
@@ -89,10 +123,18 @@ class Runner(object):
                     # otherwise, create a new batch
                     self.retrieval_batches.append({'files': [file], 'instrument_id': file_dict[file]['instrument_id'], 'scan_type': file_dict[file]['scan_type']})
 
+        if self.retrieval_batches:
+            logger.info(f'Found {len(self.retrieval_batches)} batches of files to process')
+        else:
+            logger.critical(f'Found no files to process in {self.conf["input_dir"]}. Will exit now')
+            exit()
+
     def assign_conf(self):
         """assign a config file for the DL-toolbox run and a date to each bunch of files in self.retrieval_batches"""
 
         for ind, batch in enumerate(self.retrieval_batches):
+            # create a config file for the DL-toolbox run of this batch
+            logger.info(f'Creating config file for batch {ind+1} containing {len(batch["files"])} files')
             filename_conf = self.conf['toolbox_conf_prefix'] + f'{ind:03d}' + self.conf['toolbox_conf_ext']
             batch['conf'] = os.path.join(self.conf['toolbox_confdir'], filename_conf)
             tmp_conf = Configurator(batch['instrument_id'], batch['scan_type'], batch['files'][0], batch['conf'], self.conf, 'dl_toolbox_runner/config/default_config_windcube.yaml')  # use first file in batch as reference
@@ -107,7 +149,9 @@ class Runner(object):
             for batch in self.retrieval_batches:
                 logger.info('######################################################')
                 logger.info(f'Running DL-toolbox with {len(batch["files"])} files on {batch["date"]}')
+                tl_time = time.time()
                 self.run_toolbox_single(batch)
+                logger.info(f'Time taken for this batch: {time.time()-tl_time :.1f} seconds')
 
     @staticmethod
     def run_toolbox_single(batch, cmd='lvl2_from_filelist', cmd_opt_args=('DWL_raw_XXXWL_', )):
@@ -120,5 +164,5 @@ class Runner(object):
 
 if __name__ == '__main__':
     x = Runner(abs_file_path('dl_toolbox_runner/config/main_config.yaml'), single_process=False)
-    x.run()
+    x.run(dry_run=False, date_end='2024-06-19_13-30-00', instrument_id=None)
     pass
