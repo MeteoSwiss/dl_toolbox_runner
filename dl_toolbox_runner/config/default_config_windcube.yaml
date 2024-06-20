@@ -54,7 +54,7 @@ FFT_points:  1024
 # Version number of client, please check it
 version:  04
 # Temporal interval to use for wind retrieval, given in minutes
-avg_min:  30
+avg_min:  5
 # Threshold used for acceptable condition numbers in the mean wind retrieval
 cn_threshold:  10
 # Maximal range, stating wether to radial velocities are consistent with each other, given in m*s^-1
