@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 import warnings  # cannot import logger as it would create circular import with abs_file_path, hence use warnings here
-
+import datetime
 import numpy as np
 import xarray as xr
 from hpl2netCDF_client.hpl_files.hpl_files import hpl_files
@@ -90,7 +90,10 @@ def rewrite_time_reference_units(filename, group_name='Sweep'):
 
     #ds_decoded = xr.decode_cf(ds)
     return ds
-    
+
+def round_datetime(dt, round_to_minutes=10):
+    """Round a datetime object to the nearest minute"""
+    return dt - datetime.timedelta(minutes=dt.minute % round_to_minutes, seconds=dt.second, microseconds=dt.microsecond)
 
 if __name__ == '__main__':
     inst_type = get_insttype(abs_file_path('dl_toolbox_runner/data/input/DWL_raw_PAYWL_2023-01-01_00-00-59_dbs_303_50mTP.nc'))
