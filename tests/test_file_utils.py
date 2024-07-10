@@ -21,6 +21,6 @@ class TestFileUtils(unittest.TestCase):
         
     def test_rewrite_time_reference_units(self):
         """Test for rewrite_time_reference_units function"""
-        testfile = abs_file_path('dl_toolbox_runner/data/input/DWL_raw_GREWL_2024-06-13_02-44-18_dbs_183_50m.nc')
-        ds = rewrite_time_reference_units(testfile, group_name='Sweep_5339')
+        testfile = abs_file_path('dl_toolbox_runner/data/input/DWL_raw_SHAWL_2024-07-10_12-11-42_dbs_34_50m.nc')
+        ds = rewrite_time_reference_units(testfile, group_name='Sweep_125742')
         self.assertIsInstance(ds, xr.Dataset)
