@@ -10,7 +10,7 @@ from dl_toolbox_runner.configure import Configurator
 from dl_toolbox_runner.errors import DLConfigError
 from dl_toolbox_runner.log import logger
 from dl_toolbox_runner.utils.config_utils import get_main_config
-from dl_toolbox_runner.utils.file_utils import abs_file_path
+from dl_toolbox_runner.utils.file_utils import abs_file_path, round_datetime
 
 
 class Runner(object):
@@ -70,7 +70,21 @@ class Runner(object):
         For now: files are batched by instrument_id and scan types. This is done using the filename only !
         
         single_process: bool: if True, create one batch per file, if False, group files with same instrument_id and scan_type
-        '''        
+        '''
+        if self.conf['max_age']: #TODO: here we should have a case for when max_age is None
+            if date_end:
+                date_start = date_end - datetime.timedelta(minutes=self.conf['max_age'])
+                # check if file date is between date_end - max_age and date_end
+                logger.info(f'Finding files between {date_start} and {date_end}')
+            elif self.conf['max_age']:
+                # check if file date is within now and max_age
+                date_start = datetime.datetime.now() - datetime.timedelta(minutes=self.conf['max_age'])
+                logger.info(f'Keeping files between {date_start} and {datetime.datetime.now}')
+        else:
+            date_start = None
+            logger.error('No max_age defined in the config file, processing all')
+            pass
+            
         file_dict = {}
         for file in self.files:
             # find instrument_id and scan_type for each file
@@ -82,16 +96,9 @@ class Runner(object):
             file_datestring = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}', file)
             file_datetime =  datetime.datetime.strptime(file_datestring.group(), '%Y-%m-%d_%H-%M-%S')
   
-            if self.conf['max_age']:
-                if date_end:
-                    datetime_end = datetime.datetime.strptime(date_end, '%Y-%m-%d_%H-%M-%S')
-                    # check if file date is between date_end - max_age and date_end
-                    if (file_datetime < datetime_end - datetime.timedelta(minutes=self.conf['max_age'])) or (file_datetime > datetime_end):
-                        continue
-                elif self.conf['max_age']:
-                    # check if file date within now and max_age
-                    if file_datetime < datetime.datetime.now() - datetime.timedelta(minutes=self.conf['max_age']):
-                        continue
+            if (date_start is not None) and (date_end is not None):
+                if file_datetime < date_start or file_datetime > date_end:
+                    continue
             else:
                 pass
                 
@@ -137,7 +144,7 @@ class Runner(object):
             logger.info(f'Creating config file for batch {ind+1} containing {len(batch["files"])} files')
             filename_conf = self.conf['toolbox_conf_prefix'] + f'{ind:03d}' + self.conf['toolbox_conf_ext']
             batch['conf'] = os.path.join(self.conf['toolbox_confdir'], filename_conf)
-            tmp_conf = Configurator(batch['instrument_id'], batch['scan_type'], batch['files'][0], batch['conf'], self.conf, 'dl_toolbox_runner/config/default_config_windcube.yaml')  # use first file in batch as reference
+            tmp_conf = Configurator(batch['instrument_id'], batch['scan_type'], batch['files'][0], batch['conf'], self.conf)  # use first file in batch as reference
             tmp_conf.run()
             batch['date'] = tmp_conf.date.replace(hour=0, minute=0, second=0, microsecond=0)  # floor to the day
 
@@ -164,5 +171,7 @@ class Runner(object):
 
 if __name__ == '__main__':
     x = Runner(abs_file_path('dl_toolbox_runner/config/main_config.yaml'), single_process=False)
-    x.run(dry_run=False, date_end='2024-06-19_13-30-00', instrument_id=None)
+    # Find the latest "round" time (e.g. 13:00, 13:10, 13:20, 13:30) and use this as date_end
+    date_end = round_datetime(datetime.datetime.now(), round_to_minutes=10)#.strftime('%Y-%m-%d_%H-%M-%S')
+    x.run(dry_run=False, date_end=date_end, instrument_id=None)
     pass
