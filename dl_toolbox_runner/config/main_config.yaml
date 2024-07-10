@@ -5,18 +5,18 @@
 # Paths are absolute or relative to dl_toolbox_runner project dir
 
 # maximum age of data to be considered for retrieval in minutes. Set to null for unlimited
-max_age: 90
+max_age: 10
 
 # info on instrument configuration files. TODO: check if this is really needed. If yes add as mandatory keys to get_conf
-inst_config_dir: dl_toolbox_runner/config/
+inst_config_dir: /home/eric/eprofile_config/dl/
 inst_config_file_prefix: config_
 
 # location and filenames of output data
-output_dir: dl_toolbox_runner/data/output/  # directory for output from DL toolbox
+output_dir: /data/eprofile-dl-l1/ #dl_toolbox_runner/data/output/  # directory for output from DL toolbox
 output_file_prefix: DWL_L1_
 
 # location and filenames of input E-PROFILE data
-input_dir: dl_toolbox_runner/data/input/  # directory for raw files form Doppler lidars
+input_dir: /data/eprofile-dl-raw/  # directory for raw files form Doppler lidars
 input_file_prefix: DWL_raw_
 
 # location and filenames of temporary DL toolbox conf files
