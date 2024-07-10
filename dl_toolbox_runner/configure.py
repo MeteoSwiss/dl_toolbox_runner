@@ -19,8 +19,8 @@ class Configurator(object):
                  file_conf_param_match='dl_toolbox_runner/config/conf_match.yaml'):
 
         self.conf = get_conf(abs_file_path(file_default_config))  # init with defaults from file, update later in code
-        self.conf['NC_instrument_id'] = instrument_id
-        self.conf['scan_type'] = scan_type
+        self.instrument_id = instrument_id
+        self.scan_type = scan_type
         self.datafile = datafile
         self.configfile = configfile
         self.main_config = main_config
@@ -28,15 +28,26 @@ class Configurator(object):
         self.date = None  # datetime.datetime object for timesteamp of datafile
 
     def run(self):
+        logger.info('Treating: '+self.instrument_id)
         basename = self.main_config['input_file_prefix']+'XXXWL_'
-        self.conf['inst_type'], self.date = get_insttype(self.datafile, base_filename=basename,
+        instrument_type, self.date = get_insttype(self.datafile, base_filename=basename,
                                                          return_date=True)
         
-        # Test if the instrument type corresponds to the one in the main config
-        if self.conf['system'] != self.conf['inst_type']:
-            logger.error(f"Configured instrument type ({self.conf['inst_type']}) does not match the one in the main config ({self.conf['system']})")
-            raise MissingConfig("Configured instrument type does not match the one in the main config")
+        # get config file corresponding to instrument type
+        config_filepath = abs_file_path(self.main_config['inst_config_dir'] + 'default_config_' + instrument_type + '.yaml')
+        self.conf = get_conf(config_filepath)
         
+        # Test if the instrument type corresponds to the one in the main config
+        if self.conf['system'] != instrument_type:
+            logger.error(f"Configured instrument type ({instrument_type}) does not match the one in the main config ({self.conf['system']})")
+            raise MissingConfig("Configured instrument type does not match the one in the main config")
+
+        logger.info(f'Configuring {instrument_type} with scan type {self.scan_type}')
+        logger.info(f'Read config file: {config_filepath}')
+        self.conf['inst_type'] = instrument_type
+        self.conf['scan_type'] = self.scan_type
+        self.conf['NC_instrument_id'] = self.instrument_id
+
         self.from_datafile()
         self.to_file()
         logger.info('Config file for '+self.conf['NC_instrument_id']+f' written to {self.configfile}')
@@ -45,7 +56,7 @@ class Configurator(object):
         # Some parameters needs to be read in the filename / file
         ds = xr.open_dataset(self.datafile)
                 
-        if self.conf['inst_type'] == 'windcube':
+        if self.conf['inst_type'] == 'windcube':            
             # From filename:
             self.conf['NC_L2_path'] = self.main_config['output_dir']
             self.conf['NC_L2_basename'] = self.main_config['output_file_prefix'] + self.conf['NC_instrument_id'] + '_'
