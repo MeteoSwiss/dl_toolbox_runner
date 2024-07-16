@@ -187,9 +187,9 @@ class Runner(object):
 
 
 if __name__ == '__main__':
-    x = Runner(abs_file_path('dl_toolbox_runner/config/config_test.yaml'), single_process=False)
+    x = Runner(abs_file_path('dl_toolbox_runner/config/main_config.yaml'), single_process=False)
     # Find the latest "round" time (e.g. 13:00, 13:10, 13:20, 13:30) and use this as date_end
     date_end = round_datetime(datetime.datetime.now(), round_to_minutes=10)#.strftime('%Y-%m-%d_%H-%M-%S')
     #date_end = datetime.datetime(2024,7,11,5,30)
-    x.run(dry_run=False, date_end=date_end, instrument_id=None)
+    x.run(dry_run=True, date_end=date_end, instrument_id=None)
     pass
