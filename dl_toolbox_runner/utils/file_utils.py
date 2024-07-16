@@ -3,16 +3,16 @@ from pathlib import Path
 import warnings  # cannot import logger as it would create circular import with abs_file_path, hence use warnings here
 import datetime
 import numpy as np
+import pandas as pd
 import xarray as xr
 from hpl2netCDF_client.hpl_files.hpl_files import hpl_files
 
 import dl_toolbox_runner
 from dl_toolbox_runner.errors import FilenameError
 
-
 def abs_file_path(*file_path):
     """
-    Make a relative file_path absolute in respect to the mwr_l12l2 project directory.
+    Make a relative file_path absolute in respect to the dl_toolbox_runner project directory.
     Absolute paths wil not be changed
     """
     path = Path(*file_path)
@@ -75,25 +75,52 @@ def get_insttype(filename, base_filename='DWL_raw_XXXWL_', return_date=False):
     msg = f'filename pattern does not correspond to any of the known instrument types ({list(inst_types_exts.keys())})'
     raise FilenameError(msg)
 
-def rewrite_time_reference_units(filename, group_name='Sweep'):
+def open_sweep_group(filename, group_name):
+    # From the Sweep group:
+    try: 
+        ds_sweep = xr.open_dataset(filename, group=group_name)
+    except ValueError:
+        ds_sweep = rewrite_time_reference_units(filename, group=group_name)
+    except Exception as e:
+        warnings.warn("No valid time reference found in the file")
+    
+    return ds_sweep
+                
+def rewrite_time_reference_units(filename, group='Sweep'):
     '''
     Rewrite the time reference of the dataset to the standard reference
     This is sometimes necessary as the time reference is not always correctly set, especially it seems that some files 
     have the time_reference variable in the group Sweep whereas some have it in the main group.
     '''
     # Open the ds without time decoding
-    ds = xr.open_dataset(filename, group=group_name, decode_times=False)
+    ds_recoded = xr.open_dataset(filename, group=group, decode_times=False)
     
-    encoding = str(ds.time_reference.data)
-    new_encoding = ds.time.units.replace('time_reference', encoding)
-    ds.time.encoding['units'] = new_encoding
-
-    #ds_decoded = xr.decode_cf(ds)
-    return ds
+    encoding = str(ds_recoded.time_reference.data)
+    new_encoding = ds_recoded.time.units.replace('time_reference', encoding)
+    
+    new_time = [datetime.datetime.fromtimestamp(t) for t in ds_recoded.time.data]
+    
+    ds_recoded['time'] = new_time
+    ds_recoded.time.encoding['units'] = new_encoding
+    ds_recoded.time.encoding['calendar'] = 'standard'
+    
+    return ds_recoded
 
 def round_datetime(dt, round_to_minutes=10):
     """Round a datetime object to the nearest minute"""
     return dt - datetime.timedelta(minutes=dt.minute % round_to_minutes, seconds=dt.second, microseconds=dt.microsecond)
+
+def find_file_time_windcube(filename):
+    '''
+    Function to extract the start and end from the file content
+    '''
+    ds = xr.open_dataset(filename)
+    group_name = ds.sweep_group_name.data[0]
+                    
+    ds_sweep = open_sweep_group(filename, group_name)
+    start_time = pd.to_datetime(ds_sweep.time.data[0])
+    end_time = pd.to_datetime(ds_sweep.time.data[-1])
+    return start_time, end_time
 
 if __name__ == '__main__':
     inst_type = get_insttype(abs_file_path('dl_toolbox_runner/data/input/DWL_raw_PAYWL_2023-01-01_00-00-59_dbs_303_50mTP.nc'))

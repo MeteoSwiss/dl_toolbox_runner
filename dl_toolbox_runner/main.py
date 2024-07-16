@@ -10,8 +10,7 @@ from dl_toolbox_runner.configure import Configurator
 from dl_toolbox_runner.errors import DLConfigError
 from dl_toolbox_runner.log import logger
 from dl_toolbox_runner.utils.config_utils import get_main_config
-from dl_toolbox_runner.utils.file_utils import abs_file_path, round_datetime
-
+from dl_toolbox_runner.utils.file_utils import abs_file_path, round_datetime, find_file_time_windcube, get_insttype
 
 class Runner(object):
     """Runner to execute (multiple) run(s) of DL-toolbox with config associated to data files
@@ -35,6 +34,9 @@ class Runner(object):
 
     def run(self, dry_run=False, instrument_id=None, date_end=None):
         start = time.time()
+        logger.info('######################################################')
+        logger.info('Starting retrieval process at '+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))        
+        logger.info('######################################################')
         logger.info('Searching for files to process')
         self.find_files(instrument_id=instrument_id)
         logger.info('Grouping files to batches')
@@ -87,21 +89,36 @@ class Runner(object):
             
         file_dict = {}
         for file in self.files:
+            inst_type = get_insttype(file, base_filename='DWL_raw_XXXWL_', return_date=False)
+
+            if inst_type != 'windcube':
+                logger.error(f'Instrument type {inst_type} not supported')
+                raise NotImplementedError(f'Instrument type {inst_type} not supported')
+            
             # find instrument_id and scan_type for each file
             file_dict[file] = {}
             idx_id = file.find(self.conf['input_file_prefix'])+len(self.conf['input_file_prefix'])
             file_dict[file]['instrument_id'] = file[idx_id:idx_id+5]
-
+            
             # check for file age with conf['max_age']
+            # Note: this is not enough to check only the filenames because some sweeps expands further away in time !
+            # However, it provides a quick check to eliminate already all files that are completely off.
             file_datestring = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}', file)
             file_datetime =  datetime.datetime.strptime(file_datestring.group(), '%Y-%m-%d_%H-%M-%S')
-  
+            
             if (date_start is not None) and (date_end is not None):
                 if file_datetime < date_start or file_datetime > date_end:
                     continue
+                else:
+                    #We need to open the files and check the full time_bounds                   
+                    file_start_time, file_end_time = find_file_time_windcube(file)
+                    if file_start_time < date_start or file_end_time > date_end:
+                        continue
+                    else:
+                        pass
             else:
                 pass
-                
+               
             # scan type:
             if 'dbs' in file:
                 scan_type = 'DBS'
@@ -170,8 +187,9 @@ class Runner(object):
 
 
 if __name__ == '__main__':
-    x = Runner(abs_file_path('dl_toolbox_runner/config/main_config.yaml'), single_process=False)
+    x = Runner(abs_file_path('dl_toolbox_runner/config/config_test.yaml'), single_process=False)
     # Find the latest "round" time (e.g. 13:00, 13:10, 13:20, 13:30) and use this as date_end
     date_end = round_datetime(datetime.datetime.now(), round_to_minutes=10)#.strftime('%Y-%m-%d_%H-%M-%S')
+    #date_end = datetime.datetime(2024,7,11,5,30)
     x.run(dry_run=False, date_end=date_end, instrument_id=None)
     pass
