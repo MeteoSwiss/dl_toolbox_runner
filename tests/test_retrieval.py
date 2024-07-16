@@ -11,7 +11,7 @@ class TestRetrieval(unittest.TestCase):
 
     def test_full(self):
         """integration test for sample retrieval with DL toolbox"""
-        x = Runner(abs_file_path('dl_toolbox_runner/config/config_test.yaml'),  single_process=True)
+        x = Runner(abs_file_path('tests/config/config_test.yaml'),  single_process=True)
         x.run(instrument_id='PAYWL')
 
         # Check if output file has been written:

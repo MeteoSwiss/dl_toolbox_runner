@@ -14,9 +14,8 @@ outdir = abs_file_path('tests/tmp_test_configurator')
 #configfile = os.path.join(outdir, 'PAYWL_conftest.conf')
 
 configfile = abs_file_path('dl_toolbox_runner/data/toolbox/sample_config/PAYWL_DBS_TP.conf')
-defaultconfigfile = abs_file_path('dl_toolbox_runner/config/default_config_windcube.yaml')
-mainconfigfile = abs_file_path('dl_toolbox_runner/config/main_config.yaml')
-
+mainconfigfile = abs_file_path('tests/config/config_test.yaml')
+default_configfilename = 'default_config_windcube.yaml'
 
 class TestConf(unittest.TestCase):
     @classmethod
@@ -29,8 +28,8 @@ class TestConf(unittest.TestCase):
 
     def test_full(self):
         """Test for the Configurator class"""
-
-        x = Configurator('PAYWL', 'DBS_TP',  datafile, configfile, main_config=get_conf(mainconfigfile), file_default_config=defaultconfigfile)
+        main_config=get_conf(mainconfigfile)
+        x = Configurator('PAYWL', 'DBS_TP',  datafile, configfile, main_config, file_default_config=main_config['inst_config_dir']+default_configfilename)
         x.run()
 
     # TODO: test outputfile against a reference file
@@ -38,6 +37,7 @@ class TestConf(unittest.TestCase):
     
     def test_GetConf(self):
         """Test for the get_conf function"""
-        conf = get_conf(abs_file_path('dl_toolbox_runner/config/default_config_windcube.yaml'))
+        main_config=get_conf(mainconfigfile)
+        conf = get_conf(main_config['inst_config_dir']+default_configfilename)
         self.assertIsInstance(conf, dict)
         self.assertEqual(conf['system'], 'windcube')

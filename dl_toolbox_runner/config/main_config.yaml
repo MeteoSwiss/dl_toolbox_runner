@@ -11,6 +11,8 @@ max_age: 10
 inst_config_dir: /home/eric/eprofile_config/dl/
 inst_config_file_prefix: config_
 
+dl_list_filename: 'doppler_lidar.csv'
+
 # location and filenames of output data
 output_dir: /data/eprofile-dl-l1/ #dl_toolbox_runner/data/output/  # directory for output from DL toolbox
 output_file_prefix: DWL_L1_

@@ -1,8 +1,10 @@
 import xarray as xr
+import numpy as np 
+import pandas as pd
 
 from dl_toolbox_runner.errors import MissingConfig
 from dl_toolbox_runner.utils.config_utils import get_conf
-from dl_toolbox_runner.utils.file_utils import abs_file_path, get_insttype, dict_to_file, rewrite_time_reference_units
+from dl_toolbox_runner.utils.file_utils import abs_file_path, get_insttype, dict_to_file, open_sweep_group
 from dl_toolbox_runner.log import logger
 
 class Configurator(object):
@@ -64,16 +66,23 @@ class Configurator(object):
             # General variables
             self.conf['system_longitude'] = float(ds.longitude.data)
             self.conf['system_latitude'] = float(ds.latitude.data)
-            self.conf['system_altitude'] = float(ds.altitude.data)
+            #self.conf['system_altitude'] =  float(ds.altitude.data)
             
-            # From the Sweep group:
-            try: 
-                ds_sweep = xr.open_dataset(self.datafile, group=ds.sweep_group_name.data[0])
-            except ValueError:
-                ds_sweep = rewrite_time_reference_units(self.datafile, group_name=ds.sweep_group_name.data[0])
-                #ds = xr.decode_cf(ds_sweep)
-            except:
-                logger.error("No valid time reference found in the file")
+            # Reading the altitude of the instrument from config file 
+            # TODO: check if the altitude can be read from file but for windcube it is not (always) the case
+            #if np.isnan(self.conf['system_altitude']):
+            logger.warning("Altitude not read from file but from csv file")
+            # if the altitude is not given in the file, we read the altitude from the site in the csv config file
+            dl_list_filename = self.main_config['inst_config_dir'] + self.main_config['dl_list_filename']
+            # read altitude from csv file
+            dl_list = pd.read_csv(dl_list_filename)
+            dl = dl_list[dl_list['identifier'] == self.instrument_id]
+            self.conf['system_altitude'] = dl.altitude.values[0]
+            
+            # Name of the sweep group (always different in Windcube files)
+            group_name = ds.sweep_group_name.data[0]
+            
+            ds_sweep = open_sweep_group(self.datafile, group_name)
                 
             self.conf['range_gate_lenth'] = float(ds_sweep.range_gate_length.data)
             self.conf['number_of_gates'] = len(ds_sweep.gate_index.data)
