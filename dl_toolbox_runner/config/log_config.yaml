@@ -11,7 +11,7 @@ loglevel_stdout: INFO  # level specification acceptable for logging module (DEBU
 # configure logging to file (only takes effect if write_logfile is set True)
 # CARE: Each run generates a new file. Consider while specifying timestamp_format to avoid overwriting
 # ----------------------------------------------------------------------------------------------------
-write_logfile: True
+write_logfile: False
 logfile_path: dl_toolbox_runner/logs/  # absolute or relative to project dir
 logfile_basename: log_  # full filename will be logfile_basename + timestamp + logfile_ext
 logfile_ext: .txt  # file extension for logs files
