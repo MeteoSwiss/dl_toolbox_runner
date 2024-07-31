@@ -51,7 +51,7 @@ def main():
     x = Runner(kwargs['main_conf'], single_process=kwargs['single_process'])
     
     # Find the latest "round" time (e.g. 13:00, 13:10, 13:20, 13:30) and use this as date_end
-    date_end = round_datetime(datetime.datetime.now(), round_to_minutes=kwargs['round_to_minutes'])
+    date_end = round_datetime(datetime.datetime.now() - datetime.timedelta(minutes=10), round_to_minutes=kwargs['round_to_minutes'])
     
     # Run the wind retrievals
     x.run(dry_run=kwargs['dry_run'], date_end=date_end, instrument_id= kwargs['instrument_id'])
