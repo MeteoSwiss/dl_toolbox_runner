@@ -4,7 +4,7 @@ import pandas as pd
 
 from dl_toolbox_runner.errors import MissingConfig
 from dl_toolbox_runner.utils.config_utils import get_conf
-from dl_toolbox_runner.utils.file_utils import abs_file_path, get_insttype, dict_to_file, open_sweep_group
+from dl_toolbox_runner.utils.file_utils import abs_file_path, get_config_path, get_insttype, dict_to_file, open_sweep_group
 from dl_toolbox_runner.log import logger
 
 class Configurator(object):
@@ -36,7 +36,7 @@ class Configurator(object):
                                                          return_date=True)
         
         # get config file corresponding to instrument type
-        config_filepath = abs_file_path(self.main_config['inst_config_dir'] + 'default_config_' + instrument_type + '.yaml')
+        config_filepath = get_config_path(self.main_config['inst_config_dir'] + 'default_config_' + instrument_type + '.yaml')
         self.conf = get_conf(config_filepath)
         
         # Test if the instrument type corresponds to the one in the main config
@@ -73,7 +73,7 @@ class Configurator(object):
             #if np.isnan(self.conf['system_altitude']):
             logger.warning("Altitude not read from file but from csv file")
             # if the altitude is not given in the file, we read the altitude from the site in the csv config file
-            dl_list_filename = self.main_config['inst_config_dir'] + self.main_config['dl_list_filename']
+            dl_list_filename = get_config_path(self.main_config['inst_config_dir'] + self.main_config['dl_list_filename'])
             # read altitude from csv file
             dl_list = pd.read_csv(dl_list_filename)
             dl = dl_list[dl_list['identifier'] == self.instrument_id]

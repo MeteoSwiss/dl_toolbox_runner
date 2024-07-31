@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import warnings  # cannot import logger as it would create circular import with abs_file_path, hence use warnings here
 import datetime
+import re
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -20,6 +21,16 @@ def abs_file_path(*file_path):
         return path
     return Path(dl_toolbox_runner.__file__).parent.parent / path
 
+def get_home_dir():
+    return Path.home()
+
+def get_config_path(*dir_path):
+    path = Path(*dir_path)
+    if path.is_absolute():
+        return path
+    else:
+        home_dir = get_home_dir()
+        return home_dir / path
 
 def dict_to_file(data, file, sep, header=None, remove_brackets=False, remove_parentheses=False, remove_braces=False):
     """write dictionary contents to a file. One item per line matching keys and values using 'sep'.
@@ -110,6 +121,28 @@ def round_datetime(dt, round_to_minutes=10):
     """Round a datetime object to the nearest minute"""
     return dt - datetime.timedelta(minutes=dt.minute % round_to_minutes, seconds=dt.second, microseconds=dt.microsecond)
 
+def get_instrument_id_and_scan_type(file, prefix):
+    # find instrument_id and scan_type for a windcube file
+    
+    idx_id = file.find(prefix)+len(prefix)
+    instrument_id = file[idx_id:idx_id+5]
+            
+    # scan type:
+    if 'dbs' in file:
+        scan_type = 'DBS'
+    elif 'vad' in file:
+        scan_type = 'VAD'                
+    else:
+        warnings("No valid scan type identified for:"+file)
+            
+    if 'TP' in file:
+        scan_type = scan_type+'_TP'
+            
+    file_datestring = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}', file)
+    file_datetime =  datetime.datetime.strptime(file_datestring.group(), '%Y-%m-%d_%H-%M-%S')
+            
+    return instrument_id, scan_type, file_datetime  
+    
 def find_file_time_windcube(filename):
     '''
     Function to extract the start and end from the file content

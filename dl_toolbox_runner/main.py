@@ -10,8 +10,8 @@ from dl_toolbox_runner.configure import Configurator
 from dl_toolbox_runner.errors import DLConfigError
 from dl_toolbox_runner.log import logger
 from dl_toolbox_runner.utils.config_utils import get_main_config
-from dl_toolbox_runner.utils.file_utils import abs_file_path, round_datetime, find_file_time_windcube, get_insttype
-
+from dl_toolbox_runner.utils.file_utils import abs_file_path, round_datetime, find_file_time_windcube, get_insttype, get_instrument_id_and_scan_type
+    
 class Runner(object):
     """Runner to execute (multiple) run(s) of DL-toolbox with config associated to data files
 
@@ -31,7 +31,7 @@ class Runner(object):
         self.retrieval_batches = []  # list of dicts with keys 'date', 'files' and 'conf' #EDIT: added 'instrument_id' and 'scan_type'
         self.single_process = single_process  # if True, create one batch per file, if False, group files with same instrument_id and scan_type
         # TODO harmonise file naming with mwr_l12l2 retrieval_batches is called retrieval_dict there
-
+    
     def run(self, dry_run=False, instrument_id=None, date_end=None):
         start = time.time()
         logger.info('######################################################')
@@ -50,7 +50,25 @@ class Runner(object):
             self.run_toolbox()
         else:
             logger.info('Dry run, only creating the config files')
-            
+
+    def realtime_run(self, dry_run=False, retrieval_batches=[]):
+        start = time.time()
+        logger.info('######################################################')
+        logger.info('Starting retrieval process at '+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))        
+        logger.info('######################################################')
+        logger.info('From batch files created by watchdog:')
+        print(retrieval_batches)
+        self.retrieval_batches = retrieval_batches
+        #self.batch_files(single_process=self.single_process, date_end=date_end)
+        logger.info('Assigning config files to batches')
+        self.assign_conf()
+        logger.info(f'Time taken to write the config files: {time.time()-start:.1f} seconds')
+
+        if not dry_run:
+            logger.info('Running DL-toolbox for the batches')
+            self.run_toolbox()
+        else:
+            logger.info('Dry run, only creating the config files')        
 
     def find_files(self, instrument_id=None):
         """find files and group them to batches for processing"""
@@ -95,16 +113,11 @@ class Runner(object):
                 logger.error(f'Instrument type {inst_type} not supported')
                 raise NotImplementedError(f'Instrument type {inst_type} not supported')
             
-            # find instrument_id and scan_type for each file
             file_dict[file] = {}
-            idx_id = file.find(self.conf['input_file_prefix'])+len(self.conf['input_file_prefix'])
-            file_dict[file]['instrument_id'] = file[idx_id:idx_id+5]
+            # find instrument_id and scan_type for each file
+            instrument_id, scan_type, file_datetime = get_instrument_id_and_scan_type(file, prefix=self.conf['input_file_prefix'])
             
-            # check for file age with conf['max_age']
-            # Note: this is not enough to check only the filenames because some sweeps expands further away in time !
-            # However, it provides a quick check to eliminate already all files that are completely off.
-            file_datestring = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}', file)
-            file_datetime =  datetime.datetime.strptime(file_datestring.group(), '%Y-%m-%d_%H-%M-%S')
+            file_dict[file]['instrument_id'] = instrument_id
             
             if (date_start is not None) and (date_end is not None):
                 if file_datetime < date_start or file_datetime > date_end:
