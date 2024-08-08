@@ -12,6 +12,8 @@ python = "^3.10"  # needed for using staticmethods in class scope directly
 # hpl2netcdf-client = {git="git@github.com:mkay-atm/dl_toolbox.git", branch="master"}
 hpl2netcdf-client = {git="https://github.com/rruefenacht/dl_toolbox_nrt.git", branch="nrt"}
 pyyaml = "^6.0.1"
+watchdog = "^4.0.1"
+numpy = "1.26.4"
 
 
 [build-system]
