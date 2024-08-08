@@ -131,17 +131,6 @@ class Runner(object):
                         pass
             else:
                 pass
-               
-            # scan type:
-            if 'dbs' in file:
-                scan_type = 'DBS'
-            elif 'vad' in file:
-                scan_type = 'VAD'                
-            else:
-                logger.error("No valid scan type identified for:"+self.datafile)
-            
-            if 'TP' in file:
-                scan_type = scan_type+'_TP'
                 
             file_dict[file]['scan_type'] = scan_type
             
