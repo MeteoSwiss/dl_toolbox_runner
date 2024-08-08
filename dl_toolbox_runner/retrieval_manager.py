@@ -18,7 +18,8 @@ from dl_toolbox_runner.main import Runner
 from dl_toolbox_runner.utils.file_utils import abs_file_path, round_datetime, find_file_time_windcube, get_instrument_id_and_scan_type
 from dl_toolbox_runner.log import logger
 
-X = 5 # Time window for the retrieval in minutes
+X = 10 # Time window for the retrieval in minutes
+THESH_4_RETRIEVAL = 0.6 # % Threshold for the batch length to trigger the retrieval
 BATCH_CREATION_THRESHOLD = 40 # Time in minutes after which a batch is considered too old
 
 class RealTimeWatcher(FileSystemEventHandler):
@@ -75,7 +76,7 @@ class RealTimeWatcher(FileSystemEventHandler):
         instrument_id, scan_type, file_datetime = get_instrument_id_and_scan_type(file, prefix=self.file_prefix)
         
         # TODO: remove this fix !
-        if instrument_id == 'PAYWL' or instrument_id == 'GREWL':
+        if instrument_id == 'PAYWL':
             return
         
         file_start_time, file_end_time = find_file_time_windcube(path)
@@ -98,6 +99,7 @@ class RealTimeWatcher(FileSystemEventHandler):
                 if batch['batch_creation_time'] < datetime.datetime.now() - datetime.timedelta(minutes=BATCH_CREATION_THRESHOLD):
                     print('WARNING: TOO OLD BATCH FOUND, removing it but this should NEVER happened !')
                     self.retrieval_batches.remove(batch)
+                    continue
                 if (batch['instrument_id'] == instrument_id) & (batch['scan_type'] == scan_type):
                     # if both instrument_id and scan_type match, 
                     # Check the time window of the batch
@@ -115,7 +117,9 @@ class RealTimeWatcher(FileSystemEventHandler):
                         #self.create_batch(path, instrument_id, scan_type, file_start_time, file_end_time, file_length)
                         #print('Number of batches: ', len(self.retrieval_batches))
                         continue
-                    else:
+                    elif (file_start_time > batch['retrieval_start_time']) & (file_end_time < batch['retrieval_end_time']):
+                        # We can only include files with time bounds within retrieval times !
+                        # TODO: Can we do something with files overlapping retrieval bounds ?? 
                         print('File added to existing batch for ID ', instrument_id, 'and scan type ', scan_type, ' with retrieval time border: ', batch['retrieval_start_time'], batch['retrieval_end_time'])
                         # Add file to batch and update the batch_end_time
                         batch['files'].append(path)
@@ -125,19 +129,26 @@ class RealTimeWatcher(FileSystemEventHandler):
                             batch['batch_start_time'] = file_start_time
                         if file_end_time > batch['batch_end_time']:
                             batch['batch_end_time'] = file_end_time
-                                        
+                        
+                        # >>> the following could be put in another for loop in case the same file should be used in multiple batches  
                         # When the batch_end_time becomes bigger thant date_end, do the retrieval for this batch and empty file list
                         #if (batch['batch_start_time'] < self.date_start) & (batch['batch_end_time'] > self.date_end):
-                        if (batch['batch_length_sec'] > X*60) & (batch['batch_end_time'] > batch['retrieval_end_time']):
-                            print('Added batch to queue')
+                        if (batch['batch_length_sec'] > THESH_4_RETRIEVAL*X*60):
                             self.process(batch)
-
-                            #self.x.realtime_run(dry_run=False, retrieval_batches=[batch])
                             # remove the batch from the list
                             self.retrieval_batches.remove(batch)
-                            print('Number of batches (after removal): ', len(self.retrieval_batches))
+                            print('Added batch to queue and removing it, number of batches remaining: ', len(self.retrieval_batches))
+                        # >>>>
                         new_batch = 0
                         return
+                    elif (file_start_time > batch['retrieval_start_time']) or (file_end_time < batch['retrieval_end_time']):
+                        print('Part of the file is in the time window but not all --> ignoring it for now')
+                        new_batch = 0
+                        continue
+                    else:
+                        raise ValueError('Error in the code, check the logic')
+                else:
+                    continue
             if new_batch:
                 # This should only create a new batch after having check all existing batches and make sure in all cases
                 # that the start_time of the file was bigger than the retrieval_end_time
