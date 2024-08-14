@@ -9,6 +9,7 @@ dl_toolbox_runner/logs/log*
 .idea/
 .~lock.*
 .vscode
+.env_dl/*
 
 offline/
 dist/
