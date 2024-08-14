@@ -131,7 +131,9 @@ def get_instrument_id_and_scan_type(file, prefix):
     if 'dbs' in file:
         scan_type = 'DBS'
     elif 'vad' in file:
-        scan_type = 'VAD'                
+        scan_type = 'VAD'
+    elif 'fixed' in file:
+        scan_type = 'FIXED_VAD'
     else:
         warnings("No valid scan type identified for:"+file)
             
@@ -147,7 +149,12 @@ def find_file_time_windcube(filename):
     '''
     Function to extract the start and end from the file content
     '''
-    ds = xr.open_dataset(filename)
+    try:
+        ds = xr.open_dataset(filename)
+    except:
+        print("Could not open file: "+filename)
+        return None, None
+        
     group_name = ds.sweep_group_name.data[0]
                     
     ds_sweep = open_sweep_group(filename, group_name)

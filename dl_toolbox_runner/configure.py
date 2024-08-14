@@ -36,7 +36,7 @@ class Configurator(object):
                                                          return_date=True)
         
         # get config file corresponding to instrument type
-        config_filepath = get_config_path(self.main_config['inst_config_dir'] + 'default_config_' + instrument_type + '.yaml')
+        config_filepath = get_config_path(self.main_config['inst_config_dir'] + self.main_config['inst_config_file_prefix'] + instrument_type + '.yaml')
         self.conf = get_conf(config_filepath)
         
         # Test if the instrument type corresponds to the one in the main config
@@ -86,6 +86,9 @@ class Configurator(object):
                 
             self.conf['range_gate_lenth'] = float(ds_sweep.range_gate_length.data)
             self.conf['number_of_gates'] = len(ds_sweep.gate_index.data)
+            
+            if 'FIXED' in self.conf['scan_type']:
+                self.conf['number_of_gate_points']=1
         
         elif self.conf['inst_type'] == 'halo':
             logger.error("Halo configuration not implemented yet")

@@ -75,11 +75,12 @@ class RealTimeWatcher(FileSystemEventHandler):
         file = Path(path).name
         instrument_id, scan_type, file_datetime = get_instrument_id_and_scan_type(file, prefix=self.file_prefix)
         
-        # TODO: remove this fix !
-        if instrument_id == 'PAYWL':
+        file_start_time, file_end_time = find_file_time_windcube(path)
+        
+        if file_start_time is None:
+            logger.error(f"Problem while reading: {file}")
             return
         
-        file_start_time, file_end_time = find_file_time_windcube(path)
         print('####################')
         print('file: ', file, ' with start time: ', file_start_time, 'and end time: ', file_end_time)
 
@@ -98,6 +99,7 @@ class RealTimeWatcher(FileSystemEventHandler):
             for batch in self.retrieval_batches:
                 if batch['batch_creation_time'] < datetime.datetime.now() - datetime.timedelta(minutes=BATCH_CREATION_THRESHOLD):
                     print('WARNING: TOO OLD BATCH FOUND, removing it but this should NEVER happened !')
+                    print(batch)
                     self.retrieval_batches.remove(batch)
                     continue
                 if (batch['instrument_id'] == instrument_id) & (batch['scan_type'] == scan_type):
