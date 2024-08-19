@@ -108,46 +108,47 @@ class Runner(object):
         file_dict = {}
         for file in self.files:
             inst_type = get_insttype(file, base_filename='DWL_raw_XXXWL_', return_date=False)
-
-            if inst_type != 'windcube':
-                logger.error(f'Instrument type {inst_type} not supported')
-                raise NotImplementedError(f'Instrument type {inst_type} not supported')
             
             file_dict[file] = {}
             # find instrument_id and scan_type for each file
-            instrument_id, scan_type, file_datetime = get_instrument_id_and_scan_type(file, prefix=self.conf['input_file_prefix'])
+            instrument_id, scan_type, scan_id, scan_resolution, file_datetime = get_instrument_id_and_scan_type(file, inst_type, prefix=self.conf['input_file_prefix'])
+            print('Configuration of the file is instrument_id:', instrument_id, '/ scan type', scan_type, '/ scan_id:', scan_id, '/ scan_resolution:', scan_resolution, '/ file_datetime:', file_datetime)
             
             file_dict[file]['instrument_id'] = instrument_id
+            file_dict[file]['scan_type'] = scan_type
+            file_dict[file]['scan_id'] = scan_id
+            file_dict[file]['scan_resolution'] = scan_resolution
             
             if (date_start is not None) and (date_end is not None):
                 if file_datetime < date_start or file_datetime > date_end:
                     continue
                 else:
-                    #We need to open the files and check the full time_bounds                   
-                    file_start_time, file_end_time = find_file_time_windcube(file)
-                    if file_start_time < date_start or file_end_time > date_end:
-                        continue
+                    if inst_type == 'windcube':
+                        #We need to open the files and check the full time_bounds                   
+                        file_start_time, file_end_time = find_file_time_windcube(file)
+                        if file_start_time < date_start or file_end_time > date_end:
+                            continue
+                        else:
+                            pass
                     else:
                         pass
             else:
                 pass
-                
-            file_dict[file]['scan_type'] = scan_type
             
             if single_process:
-                self.retrieval_batches.append({'files': [file], 'instrument_id': file_dict[file]['instrument_id'], 'scan_type': file_dict[file]['scan_type']})
+                self.retrieval_batches.append({'files': [file], 'instrument_id': file_dict[file]['instrument_id'], 'scan_type': file_dict[file]['scan_type'], 'scan_id': file_dict[file]['scan_id'], 'scan_resolution': file_dict[file]['scan_resolution']})
             else: 
                 # As a first test, we can implement this based on the filename only
                 # check if instrument_id and scan_type already exist in one of the batch
-                if any((d['instrument_id'] == file_dict[file]['instrument_id']) & (d['scan_type'] == file_dict[file]['scan_type']) for d in self.retrieval_batches): 
+                if any((d['instrument_id'] == file_dict[file]['instrument_id']) & (d['scan_type'] == file_dict[file]['scan_type']) & (d['scan_id'] == file_dict[file]['scan_id']) for d in self.retrieval_batches): 
                     # if so, add the file to the list of files from the correct batch
                     for batch in self.retrieval_batches:
-                        if (batch['instrument_id'] == file_dict[file]['instrument_id']) & (batch['scan_type'] == file_dict[file]['scan_type']):
+                        if (batch['instrument_id'] == file_dict[file]['instrument_id']) & (batch['scan_type'] == file_dict[file]['scan_type']) & (batch['scan_id'] == file_dict[file]['scan_id']):
                             # if both instrument_id and scan_type match, add the file to the batch
                             batch['files'].append(file)
                 else:
                     # otherwise, create a new batch
-                    self.retrieval_batches.append({'files': [file], 'instrument_id': file_dict[file]['instrument_id'], 'scan_type': file_dict[file]['scan_type']})
+                    self.retrieval_batches.append({'files': [file], 'instrument_id': file_dict[file]['instrument_id'], 'scan_type': file_dict[file]['scan_type'], 'scan_id': file_dict[file]['scan_id'], 'scan_resolution': file_dict[file]['scan_resolution']})
 
         if self.retrieval_batches:
             logger.info(f'Found {len(self.retrieval_batches)} batches of files to process')
@@ -173,12 +174,16 @@ class Runner(object):
             raise NotImplementedError('parallel runs of DL_toolbox are not yet implemented')
         else:  # execute multiple runs of DL toolbox in sequence
             for batch in self.retrieval_batches:
-                logger.info('######################################################')
-                logger.info(f'Running DL-toolbox with {len(batch["files"])} files on {batch["date"]}')
-                tl_time = time.time()
-                self.run_toolbox_single(batch)
-                logger.info(f'Time taken for this batch: {time.time()-tl_time :.1f} seconds')
-
+                try:
+                    logger.info('######################################################')
+                    logger.info(f'Running DL-toolbox with {len(batch["files"])} files on {batch["date"]}')
+                    tl_time = time.time()
+                    self.run_toolbox_single(batch)
+                    logger.info(f'Time taken for this batch: {time.time()-tl_time :.1f} seconds')
+                except Exception as e:
+                    logger.error(f'Error in batch {batch["conf"]}: {e}')
+                    logger.error('Will continue with next batch')
+                    
     @staticmethod
     def run_toolbox_single(batch, cmd='lvl2_from_filelist', cmd_opt_args=('DWL_raw_XXXWL_', )):
         """do one run of DL toolbox on a single batch of files"""

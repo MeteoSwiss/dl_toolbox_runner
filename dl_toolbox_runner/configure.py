@@ -4,8 +4,10 @@ import pandas as pd
 
 from dl_toolbox_runner.errors import MissingConfig
 from dl_toolbox_runner.utils.config_utils import get_conf
-from dl_toolbox_runner.utils.file_utils import abs_file_path, get_config_path, get_insttype, dict_to_file, open_sweep_group
+from dl_toolbox_runner.utils.file_utils import abs_file_path, get_config_path, get_insttype, dict_to_file, open_sweep_group, read_halo
 from dl_toolbox_runner.log import logger
+
+from hpl2netCDF_client.hpl_files.hpl_files import hpl_files
 
 class Configurator(object):
     """Class for setting up config file for usage in DL toolbox run
@@ -54,11 +56,11 @@ class Configurator(object):
         self.to_file()
         logger.info('Config file for '+self.conf['NC_instrument_id']+f' written to {self.configfile}')
 
-    def from_datafile(self):
-        # Some parameters needs to be read in the filename / file
-        ds = xr.open_dataset(self.datafile)
-                
-        if self.conf['inst_type'] == 'windcube':            
+    def from_datafile(self):               
+        if self.conf['inst_type'] == 'windcube':      
+            # Some parameters needs to be read in the filename / file
+            ds = xr.open_dataset(self.datafile)      
+            
             # From filename:
             self.conf['NC_L2_path'] = self.main_config['output_dir']
             self.conf['NC_L2_basename'] = self.main_config['output_file_prefix'] + self.conf['NC_instrument_id'] + '_'
@@ -84,15 +86,59 @@ class Configurator(object):
             
             ds_sweep = open_sweep_group(self.datafile, group_name)
                 
-            self.conf['range_gate_lenth'] = float(ds_sweep.range_gate_length.data)
+            self.conf['range_gate_length'] = float(ds_sweep.range_gate_length.data)
             self.conf['number_of_gates'] = len(ds_sweep.gate_index.data)
-            
-            if 'FIXED' in self.conf['scan_type']:
-                self.conf['number_of_gate_points']=1
+            self.conf['accumulation_time'] = 1e-3*float(ds_sweep.ray_accumulation_time.data)
+
+            # Some parameters are determined by the scan type or by the range_gate_length
+            if self.conf['range_gate_length'] == 25:
+                self.conf['puls_repetition_freq'] = 40000
+            elif self.conf['range_gate_length'] == 50:
+                self.conf['puls_repetition_freq'] = 20000
+            elif self.conf['range_gate_length'] == 75:
+                self.conf['puls_repetition_freq'] = 10000
+            elif self.conf['range_gate_length'] == 100:
+                self.conf['puls_repetition_freq'] = 10000
+            else:
+                logger.error("Range gate length not implemented")
+                raise NotImplementedError("Range gate length not implemented")
+            self.conf['pulses_per_direction'] = int(self.conf['accumulation_time'] * self.conf['puls_repetition_freq'])
+            #if 'FIXED' in self.conf['scan_type']:
+            #    self.conf['number_of_gate_points']=1
         
-        elif self.conf['inst_type'] == 'halo':
-            logger.error("Halo configuration not implemented yet")
-            raise NotImplementedError("Halo configuration not implemented yet")
+        elif self.conf['inst_type'] == 'halo':           
+            # From filename:
+            self.conf['NC_L2_path'] = self.main_config['output_dir']
+            self.conf['NC_L2_basename'] = self.main_config['output_file_prefix'] + self.conf['NC_instrument_id'] + '_'
+           
+            # For halo instrument, lon-lat-alt are not in the file
+            logger.warning("Lon-Lat-Alt not read from file but from csv file")
+            # if the altitude is not given in the file, we read the altitude from the site in the csv config file
+            dl_list_filename = get_config_path(self.main_config['inst_config_dir'] + self.main_config['dl_list_filename'])
+            # read altitude from csv file
+            dl_list = pd.read_csv(dl_list_filename)
+            dl = dl_list[dl_list['identifier'] == self.instrument_id]            
+            self.conf['system_longitude'] = dl.longitude.values[0]
+            self.conf['system_latitude'] = dl.latitude.values[0]
+            self.conf['system_altitude'] = dl.altitude.values[0]
+
+
+            # Some parameters needs to be read in the filename / file
+            mheader, time_ds = read_halo(abs_file_path(self.datafile))
+                            
+            self.conf['range_gate_length'] = mheader['Range gate length (m)']
+            self.conf['number_of_gates'] = mheader['Number of gates']
+            #self.conf['accumulation_time'] = 1e-3*float(ds_sweep.ray_accumulation_time.data)
+
+            # Some parameters are determined by the scan type or by the range_gate_length
+            self.conf['puls_repetition_freq'] = mheader['Pulses/ray']
+            self.conf['number_of_gate_points'] = mheader['Gate length (pts)']
+            self.conf['focus'] = mheader['Focus range']
+            self.conf['velocity_resolution'] = mheader['Resolution (m/s)']
+            
+            # ???
+            self.conf['pulses_per_direction'] = 30000
+        
         pass
         
 

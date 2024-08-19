@@ -121,30 +121,178 @@ def round_datetime(dt, round_to_minutes=10):
     """Round a datetime object to the nearest minute"""
     return dt - datetime.timedelta(minutes=dt.minute % round_to_minutes, seconds=dt.second, microseconds=dt.microsecond)
 
-def get_instrument_id_and_scan_type(file, prefix):
-    # find instrument_id and scan_type for a windcube file
-    
-    idx_id = file.find(prefix)+len(prefix)
-    instrument_id = file[idx_id:idx_id+5]
-            
-    # scan type:
-    if 'dbs' in file:
-        scan_type = 'DBS'
-    elif 'vad' in file:
-        scan_type = 'VAD'
-    elif 'fixed' in file:
-        scan_type = 'FIXED_VAD'
+def get_instrument_id_and_scan_type(filepath, inst_type, prefix):
+    if inst_type == 'windcube':
+        # find instrument_id, scan_type file_datetime and scan ID and resolution for a windcube file
+        
+        # Extract the filename from file (filepath) to avoid bug with the path (e.g. a DBS file in a VAD folder...)
+        file = os.path.basename(filepath)
+        
+        file_components = file.split('_')
+        resolution_part = file_components[-1].rsplit('.',1)[0]
+        
+        idx_id = file.find(prefix)+len(prefix)
+        instrument_id = file[idx_id:idx_id+5]
+                
+        # scan type:
+        if 'dbs' in file:
+            scan_type = 'DBS'
+        elif 'vad' in file:
+            scan_type = 'VAD'
+        elif 'fixed' in file:
+            scan_type = 'FIXED_VAD'
+        else:
+            warnings("No valid scan type identified for:"+file)
+
+        if 'TP' in resolution_part:
+            scan_type = scan_type+'_TP'
+                
+        # Extract scan ID (3 digits part after the scan type):
+        scan_id = int(file_components[-2])
+        
+        # scan resolution (the number before "m" in resolution_part) as an integer:
+        scan_resolution = int(re.search(r'\d+', resolution_part).group())
+        
+        file_datestring = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}', file)
+        file_datetime =  datetime.datetime.strptime(file_datestring.group(), '%Y-%m-%d_%H-%M-%S')
+          
+        return instrument_id, scan_type, scan_id, scan_resolution, file_datetime
+    elif inst_type == 'halo':
+        # find instrument_id, scan_type file_datetime and scan ID and resolution for a halo file
+        # Extract the filename from file (filepath) to avoid bug with the path (e.g. a DBS file in a VAD folder...)
+        file = os.path.basename(filepath)
+        
+        file_components = file.split('_')
+        
+        idx_id = file.find(prefix)+len(prefix)
+        instrument_id = file[idx_id:idx_id+5]
+        
+        scan_type = file_components[3]
+        
+        # Extract scan ID (Should be 3rd component of the filename):
+        scan_id = file_components[4]
+        
+        # scan resolution (the number before "m" in resolution_part) as an integer:
+        scan_resolution = None
+        
+        file_datestring = re.search(r'\d{4}\d{2}\d{2}_\d{2}\d{2}\d{2}', file)
+        file_datetime =  datetime.datetime.strptime(file_datestring.group(), '%Y%m%d_%H%M%S')
+          
+        return instrument_id, scan_type, scan_id, scan_resolution, file_datetime
     else:
-        warnings("No valid scan type identified for:"+file)
-            
-    if 'TP' in file:
-        scan_type = scan_type+'_TP'
-            
-    file_datestring = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}', file)
-    file_datetime =  datetime.datetime.strptime(file_datestring.group(), '%Y-%m-%d_%H-%M-%S')
-            
-    return instrument_id, scan_type, file_datetime  
+        raise ValueError("Instrument type: "+ inst_type +" not yet supported !")
+
+def read_halo(filename):
+    # This function is copy pasted from the DL_toolbox from M. Kayser
+    # In principle we only need to read the header to get the information about the file and fill the config file
     
+    if not filename.exists():
+        print("Oops, file doesn't exist!")
+    else:
+        print('reading file: ' + filename.name)
+        
+    with filename.open() as infile:
+        header_info = True
+        mheader = {}
+        for line in infile:
+            if line.startswith("****"):
+                header_info = False
+                ## Adjust header in order to extract data formats more easily
+                ## 1st for 'Data line 1' , i.e. time of beam etc.
+                tmp = [x.split() for x in mheader['Data line 1'].split('  ')]
+                if len(tmp) > 3:
+                    tmp.append(" ".join([tmp[2][2],tmp[2][3]]))
+                    tmp.append(" ".join([tmp[2][4],tmp[2][5]]))
+                tmp[0] = " ".join(tmp[0])
+                tmp[1] = " ".join(tmp[1])
+                tmp[2] = " ".join([tmp[2][0],tmp[2][1]])
+                mheader['Data line 1'] = tmp
+                tmp = mheader['Data line 1 (format)'].split(',1x,')
+                tmp.append(tmp[-1])
+                tmp.append(tmp[-1])
+                mheader['Data line 1 (format)'] = tmp
+                ## Adjust header in order to extract data formats more easily
+                ## 2st for 'Data line 2' , i.e. actual data
+                tmp = [x.split() for x in mheader['Data line 2'].split('  ')]
+                tmp[0] = " ".join(tmp[0])
+                tmp[1] = " ".join(tmp[1])
+                tmp[2] = " ".join(tmp[2])
+                tmp[3] = " ".join(tmp[3])
+                mheader['Data line 2'] = tmp
+                tmp = mheader['Data line 2 (format)'].split(',1x,')
+                mheader['Data line 2 (format)'] = tmp
+                ## start counter for time and range gates
+                counter_jj = 0
+                continue # stop the loop and continue with the next line
+
+            tmp = hpl_files.switch(header_info,line)
+            ## this temporary variable indicates whether the a given data line includes
+            # the spectral width or not, so 2d information can be distinguished from
+            # 1d information.
+            indicator = len(line[:10].split())
+
+            if header_info == True:
+                try:
+                    if tmp[0][0:1] == 'i':
+                        tmp_tmp = {'Data line 2 (format)': tmp[0]}
+                    else:
+                        tmp_tmp = {tmp[0]: tmp[1]}
+                except:
+                    if tmp[0][0] == 'f':
+                        tmp_tmp = {'Data line 1 (format)': tmp[0]}
+                    else:
+                        tmp_tmp = {'blank': 'nothing'}
+                mheader.update(tmp_tmp)
+            elif (header_info == False):
+                if (counter_jj == 0):
+                    n_o_rays = (len(filename.open().read().splitlines())-17)//(int(mheader['Number of gates'])+1)
+                    mbeam = np.recarray((n_o_rays,),
+                                        dtype=np.dtype([('time', 'f8')
+                                            , ('azimuth', 'f4')
+                                            ,('elevation','f4')
+                                            ,('pitch','f4')
+                                            ,('roll','f4')]))
+                    mdata = np.recarray((n_o_rays,int(mheader['Number of gates'])),
+                                        dtype=np.dtype([('range gate', 'i2')
+                                                ,('velocity', 'f4')
+                                                ,('snrp1','f4')
+                                                ,('beta','f4')
+                                                ,('dels', 'f4')]))
+                    mdata[:, :] = np.full(mdata.shape, -999.)
+
+                # store tmp in time array
+                if  (indicator==1):
+                    dt=np.dtype([('time', 'f8'), ('azimuth', 'f4'),('elevation','f4'),('pitch','f4'),('roll','f4')])
+                    if len(tmp) < 4:
+                        tmp.extend(['-999']*2)
+                    if counter_jj < n_o_rays:
+                        mbeam[counter_jj] = np.array(tuple(tmp), dtype=dt)
+                        counter_jj = counter_jj+1
+                # store tmp in range gate array        
+                elif (indicator==2):
+                    dt=np.dtype([('range gate', 'i2')
+                                , ('velocity', 'f4')
+                                ,('snrp1','f4')
+                                ,('beta','f4')
+                                ,('dels', 'f4')])
+                    ii_index = np.array(tmp[0], dtype=dt[0])
+
+                    if (len(tmp) == 4):
+                        tmp.append('-999')
+                        mdata[counter_jj-1, ii_index] = np.array(tuple(tmp), dtype=dt)
+                    elif (len(tmp) == 5):
+                        mdata[counter_jj-1, ii_index] = np.array(tuple(tmp), dtype=dt)
+    
+    #set time information
+    time_tmp= pd.to_numeric(pd.to_timedelta(pd.DataFrame(mbeam)['time'], unit = 'h')
+                        +pd.to_datetime(datetime.datetime.strptime(mheader['Start time'], '%Y%m%d %H:%M:%S.%f').date())
+                    ).values / 10**9
+    time_ds= [ x+(datetime.timedelta(days=1)).total_seconds()
+            if time_tmp[0]-x>0 else x
+            for x in time_tmp
+            ]
+    return mheader, time_ds#, mbeam #, mdata, time_ds
+        
 def find_file_time_windcube(filename):
     '''
     Function to extract the start and end from the file content
