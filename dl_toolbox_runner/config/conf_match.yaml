@@ -11,17 +11,17 @@ system_altitude: SYSTEM_ALTITUDE  # Altitude position above mean sea level, give
 system_wavelength: SYSTEM_WAVELENGTH  # Laser wavelength of the system, given in meter
 puls_duration: PULS_DURATION  # Pulse duration/length, i.e. FWHM duration, given in seconds
 number_of_gates: NUMBER_OF_GATES  # Number of range gates in files (Note: can also be inferred from individual lvl-1 files)
-range_gate_lenth: RANGE_GATE_LENGTH  # Length if range gate, given in meter
-#NUMBER_OF_GATE_POINTS  # Number of points that make up a range gate in the time domain
+range_gate_length: RANGE_GATE_LENGTH  # Length if range gate, given in meter
+number_of_gate_points: NUMBER_OF_GATE_POINTS  # Number of points that make up a range gate in the time domain
 #BLINDEZONE_GATES  # Number of bottom range gates to exclude in the L2-Product (default 0)
 #OVERLAPPING_GATES  # optional argument stating whether the gated information contains overlapping range gates. (use 0 for False and 1 for True)
-#PULSES_PER_DIRECTION  # Number of laser shots used for avaraging (Note: please make sure this number is equal to the one specified in the scan modus)
+pulses_per_direction: PULSES_PER_DIRECTION  # Number of laser shots used for avaraging (Note: please make sure this number is equal to the one specified in the scan modus)
 number_of_direction: NUMBER_OF_DIRECTIONS  # Number of different azimuth directions, that should be used in the wind retrieval
-#PULS_REPETITION_FREQ  # Rate of consecutive laser shots
+puls_repetition_freq: PULS_REPETITION_FREQ  # Rate of consecutive laser shots
 scan_type: SCAN_TYPE  # Possible scan types: 'VAD', 'DBS', 'RHI' or 'User' for other (should match the hpl-File name, use either for windcube)
-#FOCUS  # Telescope focus, given in meter (Note: 65535 implies that the focus is at infinity, only for Halo-Systems)
+focus: FOCUS  # Telescope focus, given in meter (Note: 65535 implies that the focus is at infinity, only for Halo-Systems)
 FFT_points: FFT_POINTS  # Number of FFT points used in the radial wind measurements
-#VELOCITY_RESOLUTION  # The best possible resolution of consecutive velocity estimates, given in m*s^-1
+velocity_resolution: VELOCITY_RESOLUTION  # The best possible resolution of consecutive velocity estimates, given in m*s^-1
 version: VERSION  # Version number of client, please check it (default 04)
 avg_min: AVG_MIN  # Temporal interval to use for wind retrieval, given in minutes
 cn_threshold: CN_THRESHOLD  # Threshold used for acceptable condition numbers in the mean wind retrieval
