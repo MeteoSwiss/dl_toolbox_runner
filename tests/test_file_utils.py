@@ -14,10 +14,10 @@ class TestFileUtils(unittest.TestCase):
         self.assertEqual(get_insttype(testfile_wc), 'windcube')
         self.assertEqual(get_insttype(abs_file_path(testfile_wc)), 'windcube')
 
-        testfile_halo = 'DWL_raw_LINWL_20110108_160345.hpl'
+        testfile_halo = 'DWL_raw_LINWL_User1_142_20110108_160345.hpl'
         self.assertEqual(get_insttype(testfile_halo), 'halo')
 
-        self.assertRaises(FilenameError, get_insttype, 'DWL_raw_LINWL_20110108_160345.abc') 
+        self.assertRaises(FilenameError, get_insttype, 'DWL_raw_LINWL_User1_142_20110108_160345.abc') 
         
     def test_rewrite_time_reference_units(self):
         """Test for rewrite_time_reference_units function"""

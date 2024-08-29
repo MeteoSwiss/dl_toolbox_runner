@@ -292,7 +292,27 @@ def read_halo(filename):
             for x in time_tmp
             ]
     return mheader, time_ds#, mbeam #, mdata, time_ds
-        
+
+def create_batch(file_dict, retrieval_start_time, retrieval_end_time):
+    ''''
+    Function to create a batch from a file dictionary
+    '''
+    batch = {
+        'files': [file_dict['file']],
+        'instrument_id': file_dict['instrument_id'],
+        'scan_type': file_dict['scan_type'],
+        'scan_id':  file_dict['scan_id'],
+        'scan_resolution': file_dict['scan_resolution'],
+        'batch_start_time': file_dict['file_start_time'],
+        'batch_end_time':  file_dict['file_end_time'],
+        'batch_length_sec':  file_dict['file_length'],
+        'retrieval_start_time': retrieval_start_time,
+        'retrieval_end_time': retrieval_end_time,
+        'batch_creation_time': datetime.datetime.now()
+    }
+    print('New batch created for ID: ', file_dict['instrument_id'], 'and scan type: ', file_dict['scan_type'], 'from file, with retrieval border: ', retrieval_start_time, 'and', retrieval_end_time)
+    return batch
+
 def find_file_time_windcube(filename):
     '''
     Function to extract the start and end from the file content

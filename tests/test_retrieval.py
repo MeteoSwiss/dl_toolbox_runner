@@ -1,5 +1,6 @@
 import unittest
 import os
+import datetime
 
 from dl_toolbox_runner.main import Runner
 from dl_toolbox_runner.utils.file_utils import abs_file_path
@@ -12,7 +13,7 @@ class TestRetrieval(unittest.TestCase):
     def test_full(self):
         """integration test for sample retrieval with DL toolbox"""
         x = Runner(abs_file_path('tests/config/config_test.yaml'),  single_process=True)
-        x.run(instrument_id='PAYWL')
+        x.run(instrument_id='PAYWL', date_end=datetime.datetime(2023,1,1,0,10))
 
         # Check if output file has been written:
         assert os.path.isfile(os.path.join(x.conf['output_dir'], (x.conf['output_file_prefix'] + 'PAYWL_202301010006.nc')))
