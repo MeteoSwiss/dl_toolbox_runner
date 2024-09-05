@@ -67,6 +67,9 @@ def get_insttype(filename, base_filename='DWL_raw_XXXWL_', return_date=False):
     inst_types_exts = {'windcube': ['.nc'], 'halo': ['.hpl']}  # rely on preserved order of dict (>= python 3.6)
 
     files = [os.path.basename(filename)]
+    # First check to avoid passing system data further:
+    if os.path.splitext(files[0])[-1] in ['.csv', '.txt']:
+        return 'system_data'
     for tried_type, exts in inst_types_exts.items():
         try:
             x = hpl_files.filelist_to_hpl_files(files, tried_type, base_filename)
@@ -310,7 +313,6 @@ def create_batch(file_dict, retrieval_start_time, retrieval_end_time):
         'retrieval_end_time': retrieval_end_time,
         'batch_creation_time': datetime.datetime.now()
     }
-    print('New batch created for ID: ', file_dict['instrument_id'], 'and scan type: ', file_dict['scan_type'], 'from file, with retrieval border: ', retrieval_start_time, 'and', retrieval_end_time)
     return batch
 
 def find_file_time_windcube(filename):
