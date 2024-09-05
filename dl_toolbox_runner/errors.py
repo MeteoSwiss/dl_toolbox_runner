@@ -22,6 +22,8 @@ class DLConfigError(DLError):
 class DLTestError(DLError):
     """Raised if something goes wrong during set up or clean up of testing"""
 
+class LogicError(DLError):
+    """Raised if there is an error in the retrieval logic orchestration"""
 
 ###############################
 class MissingConfig(DLConfigError):
@@ -36,4 +38,6 @@ class MissingDataError(DLDataError):
 ###############################
 class FilenameError(DLFileError):
     """Raised if the filename does not correspond to the expected pattern"""
+
+
 

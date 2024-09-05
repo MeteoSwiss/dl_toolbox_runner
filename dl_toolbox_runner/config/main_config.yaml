@@ -9,7 +9,7 @@ max_age: 10
 
 # info on instrument configuration files. TODO: check if this is really needed. If yes add as mandatory keys to get_conf
 inst_config_dir: /home/eric/eprofile_config/dl/
-inst_config_file_prefix: config_
+inst_config_file_prefix: 'default_config_'
 
 dl_list_filename: 'doppler_lidar.csv'
 

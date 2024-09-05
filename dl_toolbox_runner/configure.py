@@ -52,8 +52,16 @@ class Configurator(object):
         self.conf['scan_type'] = self.scan_type
         self.conf['NC_instrument_id'] = self.instrument_id
 
-        self.from_datafile()
-        self.to_file()
+        try:
+            self.from_datafile()
+        except Exception as e:
+            logger.error(f"Error during configuration reading: {e}")
+            raise MissingConfig(f"Error during configuration reading: {e}")
+        try:
+            self.to_file()
+        except Exception as e:
+            logger.error(f"Error during configuration writing: {e}")
+            raise MissingConfig(f"Error during configuration writing: {e}")
         logger.info('Config file for '+self.conf['NC_instrument_id']+f' written to {self.configfile}')
 
     def from_datafile(self):               
