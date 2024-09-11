@@ -4,13 +4,15 @@ import re
 import time
 import datetime
 
+import pandas as pd
+
 from hpl2netCDF_client.hpl2netCDF_client import hpl2netCDFClient
 
 from dl_toolbox_runner.configure import Configurator
 from dl_toolbox_runner.errors import DLConfigError
 from dl_toolbox_runner.log import logger
 from dl_toolbox_runner.utils.config_utils import get_main_config
-from dl_toolbox_runner.utils.file_utils import abs_file_path, find_file_time_windcube, get_insttype, get_instrument_id_and_scan_type, create_batch
+from dl_toolbox_runner.utils.file_utils import abs_file_path, find_file_time_windcube, get_insttype, get_instrument_id_and_scan_type, create_batch, round_datetime, read_halo
     
 class Runner(object):
     """Runner to execute (multiple) run(s) of DL-toolbox with config associated to data files
@@ -132,7 +134,8 @@ class Runner(object):
                         # else:
                         #     pass
                     else:
-                        file_start_time, file_end_time = file_datetime, file_datetime
+                        mheader, time_ds = read_halo(file)
+                        file_start_time, file_end_time = pd.to_datetime(time_ds.values[0]), pd.to_datetime(time_ds.values[-1])
                         pass
             else:
                 pass
@@ -160,7 +163,7 @@ class Runner(object):
                             # in addition, we need to update a few other parameters
                             batch['batch_start_time'] = min(batch['batch_start_time'], file_start_time)
                             batch['batch_end_time'] = max(batch['batch_end_time'], file_end_time)
-                            batch['batch_length_sec'] =  batch['batch_length_sec'] + (file_end_time - file_start_time).total_seconds()
+                            batch['batch_length_sec'] = batch['batch_length_sec'] + (file_end_time - file_start_time).total_seconds()
                 else:
                     # otherwise, create a new batch
                     self.retrieval_batches.append(create_batch(file_dict, date_start, date_end))
