@@ -188,7 +188,9 @@ def get_instrument_id_and_scan_type(filepath, inst_type, prefix):
 def read_halo(filename):
     # This function is copy pasted from the DL_toolbox from M. Kayser
     # In principle we only need to read the header to get the information about the file and fill the config file
-    
+    # Check if filename is a string:
+    if isinstance(filename, str):
+        filename = Path(filename)
     if not filename.exists():
         print("Oops, file doesn't exist!")
     else:
@@ -294,7 +296,7 @@ def read_halo(filename):
             if time_tmp[0]-x>0 else x
             for x in time_tmp
             ]
-    return mheader, time_ds#, mbeam #, mdata, time_ds
+    return mheader, pd.to_timedelta(pd.DataFrame(mbeam)['time'], unit = 'h') +pd.to_datetime(datetime.datetime.strptime(mheader['Start time'], '%Y%m%d %H:%M:%S.%f').date())#, mbeam #, mdata, time_ds
 
 def create_batch(file_dict, retrieval_start_time, retrieval_end_time):
     ''''
