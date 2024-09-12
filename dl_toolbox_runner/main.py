@@ -196,14 +196,14 @@ class Runner(object):
                     logger.info('######################################################')
                     logger.info(f'Running DL-toolbox with {len(batch["files"])} files on {batch["date"]}')
                     tl_time = time.time()
-                    self.run_toolbox_single(batch, cmd_opt_args=('DWL_raw_XXXWL_', False, batch['retrieval_end_time']))
+                    self.run_toolbox_single(batch, cmd_opt_args=('DWL_raw_XXXWL_', False, batch['retrieval_end_time'], False))
                     logger.info(f'Time taken for this batch: {time.time()-tl_time :.1f} seconds')
                 except Exception as e:
                     logger.error(f'Error in batch {batch["conf"]}: {e}')
                     logger.error('Will continue with next batch')
                     
     @staticmethod
-    def run_toolbox_single(batch, cmd='lvl2_from_filelist', cmd_opt_args=('DWL_raw_XXXWL_', False, None)):
+    def run_toolbox_single(batch, cmd='lvl2_from_filelist', cmd_opt_args=('DWL_raw_XXXWL_', False, None, False)):
         """do one run of DL toolbox on a single batch of files"""
         
         proc_dl = hpl2netCDFClient(batch['conf'], cmd, batch['date'])
