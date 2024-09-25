@@ -33,18 +33,18 @@ class RealTimeWatcher(FileSystemEventHandler):
         #self.date_end = self.date_start + datetime.timedelta(minutes=10)
         
         self.threshold = 0.6 # % Threshold for the batch length to trigger the retrieval
-        self.max_age = 40 # Time in minutes after which a batch is considered too old and deleted
+        self.max_batch_age = 40 # Time in minutes after which a batch is considered too old and deleted
         
         self.queue = queue
             
-    def check_and_process_batch(self, batch, threshold=0.6, max_age=40, delay=5):
+    def check_and_process_batch(self, batch, threshold=0.6, max_batch_age=40, delay=10):
         '''
         Dedicated function to check if the batch is ready for retrieval and trigger the retrieval
         
         Arguments:
         batch: dictionary with the batch information
         threshold: threshold for the batch length to trigger the retrieval
-        max_age: maximum age of the batch in minutes
+        max_batch_age: maximum age of the batch in minutes
         delay: delay in minutes before starting the retrieval
         
         Returns (TODO: check if needed)
@@ -52,7 +52,7 @@ class RealTimeWatcher(FileSystemEventHandler):
         1 if the batch is not ready for retrieval
         
         '''
-        if batch['batch_creation_time'] < datetime.datetime.now() - datetime.timedelta(minutes=max_age):
+        if batch['batch_creation_time'] < datetime.datetime.now() - datetime.timedelta(minutes=max_batch_age):
             logger.warning('Batch is too old, removing it from the batch list !')
             print(batch)
             self.retrieval_batches.remove(batch)
@@ -82,6 +82,8 @@ class RealTimeWatcher(FileSystemEventHandler):
             file = event.src_path
             filename = Path(file).name
             inst_type = get_insttype(file, base_filename='DWL_raw_XXXWL_', return_date=False)
+            
+            # TODO: at the moment, scan_id is not defined for Halo and is set to default 0 (=instrument number)
             instrument_id, scan_type, scan_id, scan_resolution, file_datetime = get_instrument_id_and_scan_type(file, inst_type, prefix=self.file_prefix)            
             
             if inst_type == 'system_data':
@@ -90,6 +92,7 @@ class RealTimeWatcher(FileSystemEventHandler):
             elif inst_type == 'windcube':
                 file_start_time, file_end_time = find_file_time_windcube(file)
             elif inst_type == 'halo':
+                logger.info(f'Reading: {file}')
                 mheader, time_ds = read_halo(file)
                 file_start_time, file_end_time = pd.to_datetime(time_ds.values[0]), pd.to_datetime(time_ds.values[-1])
             else:
@@ -117,13 +120,13 @@ class RealTimeWatcher(FileSystemEventHandler):
             # check if instrument_id and scan_type already exist in one of the batch
             # batch dictionary is formatted as: {'files': [file], 'instrument_id': instrument_id, 'scan_type': scan_type}
             
-            if any((d['instrument_id'] == instrument_id) & (d['scan_type'] == scan_type) for d in self.retrieval_batches):
+            if any((d['instrument_id'] == instrument_id) & (d['scan_type'] == scan_type) & (d['scan_id'] == scan_id) for d in self.retrieval_batches):
                 new_batch = 0
                 # if so, add the file to the list of files from the correct batch
                 # WARNING: 2 (or more) batches for same types and instrument can co-exist if the files are not in the same time window
                 # Need to check if the file fits in the time window of each batch
                 for batch in self.retrieval_batches:
-                    if (batch['instrument_id'] == instrument_id) & (batch['scan_type'] == scan_type):
+                    if (batch['instrument_id'] == instrument_id) & (batch['scan_type'] == scan_type) & (batch['scan_id'] == scan_id):
                         # if both instrument_id and scan_type match, 
                         # Check the time window of the batch
                         # add the file to the batch if it fits in the time window
@@ -149,7 +152,7 @@ class RealTimeWatcher(FileSystemEventHandler):
                             
                             # When the batch_end_time becomes bigger thant date_end, do the retrieval for this batch and empty file list
                             #if (batch['batch_start_time'] < self.date_start) & (batch['batch_end_time'] > self.date_end):
-                            #check = self.check_and_process_batch(batch, threshold=self.threshold, max_age=self.max_age)
+                            #check = self.check_and_process_batch(batch, threshold=self.threshold, max_batch_age=self.max_batch_age)
                             new_batch = 0
                             continue
                         elif (file_start_time > batch['retrieval_start_time']) or (file_end_time < batch['retrieval_end_time']):
@@ -185,13 +188,13 @@ class RealTimeWatcher(FileSystemEventHandler):
                 batch = create_batch(file_dict, retrieval_start_time, retrieval_end_time)
                 self.retrieval_batches.append(batch)
                 logger.info('New batch created for ID '+file_dict['instrument_id']+' and scan type: '+file_dict['scan_type']+' from file, with retrieval border:'+ str(retrieval_start_time)+' and '+str(retrieval_end_time))
-                #check = self.check_and_process_batch(batch, threshold=self.threshold, max_age=self.retrieval_time)
+                #check = self.check_and_process_batch(batch, threshold=self.threshold, max_batch_age=self.max_batch_age)
             
             for batch in self.retrieval_batches:
-                check = self.check_and_process_batch(batch, threshold=self.threshold, max_age=self.retrieval_time)
+                check = self.check_and_process_batch(batch, threshold=self.threshold, max_batch_age=self.max_batch_age)
             logger.info(f'Number of batches: {len(self.retrieval_batches)}')
         except Exception as error:
-            logger.error(f"Error: {str(error)}, Ignoring this file...")
+            logger.error(f"{str(error)}, Ignoring this file...")
             return     
         
     def on_modified(self, event):
@@ -217,7 +220,7 @@ def run_retrieval(batch):
         runner = Runner(abs_file_path('dl_toolbox_runner/config/main_config.yaml'), single_process=False)
         runner.realtime_run(dry_run=False, retrieval_batches=[batch])
     except Exception as error:
-        logger.error(f"Error: {str(error)}, Ignoring this batch...")
+        logger.error(f"{str(error)}, Ignoring this batch...")
         return
     
 def start_watchdog_queue(watch_path):

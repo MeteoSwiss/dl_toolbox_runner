@@ -173,7 +173,8 @@ def get_instrument_id_and_scan_type(filepath, inst_type, prefix):
         scan_type = file_components[3]
         
         # Extract scan ID (Should be 3rd component of the filename):
-        scan_id = file_components[4]
+        #scan_id = file_components[4] #TODO: this is the instrument number, not the scan ID for Halo -> default to 0 ?
+        scan_id = 0
         
         # scan resolution (the number before "m" in resolution_part) as an integer:
         scan_resolution = None
@@ -192,9 +193,7 @@ def read_halo(filename):
     if isinstance(filename, str):
         filename = Path(filename)
     if not filename.exists():
-        print("Oops, file doesn't exist!")
-    else:
-        print('reading file: ' + filename.name)
+        print("ERROR: Oops, file doesn't exist!")
         
     with filename.open() as infile:
         header_info = True
