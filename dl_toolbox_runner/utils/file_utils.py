@@ -334,6 +334,34 @@ def find_file_time_windcube(filename):
     end_time = pd.to_datetime(ds_sweep.time.data[-1])
     return start_time, end_time
 
+def read_system_data(filename):
+    '''
+    Function to read system or environmental data from E-Profile DWLs
+    '''
+    if not os.path.exists(filename):
+        print("File does not exist: "+filename)
+        return None
+    else:
+        print("Reading file: "+filename)
+        # Check extension to define the reading method
+        if os.path.splitext(filename)[-1] == '.csv':
+            try:
+                df = pd.read_csv(filename, delimiter=';', header=None)
+            except:
+                print("Could not read file: "+filename)
+                return None
+        elif os.path.splitext(filename)[-1] == '.txt':
+            try:
+                df = pd.read_table(filename, header=None)
+            except:
+                print("Could not read file: "+filename)
+                return None
+        else:
+            print("File extension not supported: "+filename)
+            return None
+    return df
+
 if __name__ == '__main__':
     inst_type = get_insttype(abs_file_path('dl_toolbox_runner/data/input/DWL_raw_PAYWL_2023-01-01_00-00-59_dbs_303_50mTP.nc'))
     print(inst_type)
+    
