@@ -25,7 +25,7 @@ try:
     import colorlog
 
     formatter = colorlog.ColoredFormatter(
-        '%(log_color)s%(asctime)s '
+        '%(log_color)s '
         '%(levelname)-8s %(message)s',
         datefmt=None,
         reset=True,
@@ -39,7 +39,7 @@ except Exception as e:  # noqa E841
     #   print(e)
     get_logger = getLogger
     formatter = Formatter(
-        '%(asctime)s '
+        ' '
         '%(levelname)-8s %(message)s',
         '%Y-%m-%d %H:%M:%S',
     )
