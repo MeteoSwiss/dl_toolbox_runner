@@ -89,31 +89,79 @@ class Configurator(object):
             dl = dl_list[dl_list['identifier'] == self.instrument_id]
             self.conf['system_altitude'] = dl.altitude.values[0]
             
+            year = dl.year.values[0]
+            
             # Name of the sweep group (always different in Windcube files)
             group_name = ds.sweep_group_name.data[0]
             
             ds_sweep = open_sweep_group(self.datafile, group_name)
-                
+            
             self.conf['range_gate_length'] = float(ds_sweep.range_gate_length.data)
             self.conf['number_of_gates'] = len(ds_sweep.gate_index.data)
             self.conf['accumulation_time'] = 1e-3*float(ds_sweep.ray_accumulation_time.data)
-
-            # Some parameters are determined by the scan type or by the range_gate_length
+            
+            # Try to extract number of direction from raw file directly:
+            try:
+                # Sould be the number of unique azimuth values in the sweep group
+                # We need to round these value a little to avoid float comparison issues
+                rounded_directions = np.round(ds_sweep.azimuth.data, 1)
+                self.conf['number_of_direction'] = len(np.unique(rounded_directions)) - 1
+                logger.info(f"Number of directions found in raw file: {self.conf['number_of_direction']}")
+            except Exception as e:
+                logger.error(f"Error during number of directions extraction: {e}")
+                raise MissingConfig(f"Error during number of directions extraction: {e}")
+            
+            # Some parameters are determined by the scan type, by the range_gate_length or the year of installation !
+            # Values are taken from VM_DL_toolbox report
             if self.conf['range_gate_length'] == 25:
-                self.conf['puls_repetition_freq'] = 40000
+                if 'TP' in self.scan_type:
+                    self.conf['puls_repetition_freq'] = 15e3
+                    self.conf['puls_duration'] = 120e-9
+                else:
+                    if year < 2022:
+                        self.conf['puls_repetition_freq'] = 40e3
+                        self.conf['puls_duration'] = 120e-9
+                    else:
+                        self.conf['puls_repetition_freq'] = 23e3
+                        self.conf['puls_duration'] = 120e-9            
             elif self.conf['range_gate_length'] == 50:
-                self.conf['puls_repetition_freq'] = 20000
+                if 'TP' in self.scan_type:
+                    self.conf['puls_repetition_freq'] = 10e3
+                    self.conf['puls_duration'] = 200e-9
+                else:
+                    if year < 2022:
+                        self.conf['puls_repetition_freq'] = 20e3
+                        self.conf['puls_duration'] = 230e-9
+                    else:
+                        self.conf['puls_repetition_freq'] = 18.5e3
+                        self.conf['puls_duration'] = 200e-9       
             elif self.conf['range_gate_length'] == 75:
-                self.conf['puls_repetition_freq'] = 10000
+                if 'TP' in self.scan_type:
+                    self.conf['puls_repetition_freq'] = 10e3
+                    self.conf['puls_duration'] = 300e-9
+                else:
+                    if year < 2022:
+                        self.conf['puls_repetition_freq'] = 10e3
+                        self.conf['puls_duration'] = 440e-9
+                    else:
+                        self.conf['puls_repetition_freq'] = 15e3
+                        self.conf['puls_duration'] = 300e-9   
             elif self.conf['range_gate_length'] == 100:
-                self.conf['puls_repetition_freq'] = 10000
+                if 'TP' in self.scan_type:
+                    logger.error("No TP mode known for 100m range gate")
+                    raise NotImplementedError("No TP mode known for 100m range gate")
+                else:
+                    if year < 2022:
+                        self.conf['puls_repetition_freq'] = 10e3
+                        self.conf['puls_duration'] = 440e-9
+                    else:
+                        self.conf['puls_repetition_freq'] = 12.5e3
+                        self.conf['puls_duration'] = 410e-9   
             else:
                 logger.error("Range gate length not implemented")
                 raise NotImplementedError("Range gate length not implemented")
             self.conf['pulses_per_direction'] = int(self.conf['accumulation_time'] * self.conf['puls_repetition_freq'])
-            #if 'FIXED' in self.conf['scan_type']:
-            #    self.conf['number_of_gate_points']=1
-        
+            self.conf['number_of_gate_points'] = 16 #2*self.conf['range_gate_length'] / self.conf['system_wavelength']
         elif self.conf['inst_type'] == 'halo':           
             # From filename:
             self.conf['NC_L2_path'] = self.main_config['output_dir']
@@ -125,28 +173,34 @@ class Configurator(object):
             dl_list_filename = get_config_path(self.main_config['inst_config_dir'] + self.main_config['dl_list_filename'])
             # read altitude from csv file
             dl_list = pd.read_csv(dl_list_filename)
-            dl = dl_list[dl_list['identifier'] == self.instrument_id]            
+            dl = dl_list[dl_list['identifier'] == self.instrument_id]
             self.conf['system_longitude'] = dl.longitude.values[0]
             self.conf['system_latitude'] = dl.latitude.values[0]
             self.conf['system_altitude'] = dl.altitude.values[0]
 
-
             # Some parameters needs to be read in the filename / file
             mheader, time_ds = read_halo(abs_file_path(self.datafile))
                             
-            self.conf['range_gate_length'] = mheader['Range gate length (m)']
-            self.conf['number_of_gates'] = mheader['Number of gates']
+            self.conf['range_gate_length'] = float(mheader['Range gate length (m)'])
+            self.conf['number_of_gates'] = int(mheader['Number of gates'])
             #self.conf['accumulation_time'] = 1e-3*float(ds_sweep.ray_accumulation_time.data)
 
             # Some parameters are determined by the scan type or by the range_gate_length
-            self.conf['puls_repetition_freq'] = mheader['Pulses/ray']
-            self.conf['number_of_gate_points'] = mheader['Gate length (pts)']
-            self.conf['focus'] = mheader['Focus range']
-            self.conf['velocity_resolution'] = mheader['Resolution (m/s)']
+            self.conf['pulses_per_direction'] = int(mheader['Pulses/ray'])
             
-            # ???
-            self.conf['pulses_per_direction'] = 30000
-        
+            self.conf['number_of_gate_points'] = int(mheader['Gate length (pts)'])
+            #self.conf['focus'] = mheader['Focus range']
+            self.conf['velocity_resolution'] = float(mheader['Resolution (m/s)'])
+            
+            try:
+                self.conf['number_of_direction'] = int(mheader['No. of rays in file'])
+                logger.info(f"Number of directions found in raw file: {self.conf['number_of_direction']}")
+            except Exception as e:
+                logger.warning(f"Error during number of directions extraction: {e}")
+                logger.info("Keeping defaults for number of directions")
+                
+            # Not sure where to find the accumulation time for Halo instrument ?
+            self.conf['puls_repetition_freq'] = 10e3 #self.conf['pulses_per_direction'] / int(self.conf['accumulation_time'])
         pass
         
 
