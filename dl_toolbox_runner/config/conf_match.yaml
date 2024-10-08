@@ -13,8 +13,8 @@ puls_duration: PULS_DURATION  # Pulse duration/length, i.e. FWHM duration, given
 number_of_gates: NUMBER_OF_GATES  # Number of range gates in files (Note: can also be inferred from individual lvl-1 files)
 range_gate_length: RANGE_GATE_LENGTH  # Length if range gate, given in meter
 number_of_gate_points: NUMBER_OF_GATE_POINTS  # Number of points that make up a range gate in the time domain
-#BLINDEZONE_GATES  # Number of bottom range gates to exclude in the L2-Product (default 0)
-#OVERLAPPING_GATES  # optional argument stating whether the gated information contains overlapping range gates. (use 0 for False and 1 for True)
+blindezone_gates: BLINDEZONE_GATES  # Number of bottom range gates to exclude in the L2-Product (default 0)
+overlapping_gates: OVERLAPPING_GATES  # optional argument stating whether the gated information contains overlapping range gates. (use 0 for False and 1 for True)
 pulses_per_direction: PULSES_PER_DIRECTION  # Number of laser shots used for avaraging (Note: please make sure this number is equal to the one specified in the scan modus)
 number_of_direction: NUMBER_OF_DIRECTIONS  # Number of different azimuth directions, that should be used in the wind retrieval
 puls_repetition_freq: PULS_REPETITION_FREQ  # Rate of consecutive laser shots
