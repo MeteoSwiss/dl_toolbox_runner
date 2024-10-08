@@ -148,7 +148,8 @@ class Runner(object):
             file_dict['file_start_time'] = file_start_time
             file_dict['file_end_time'] = file_end_time
             file_dict['file_length'] = (file_end_time - file_start_time).total_seconds()
-                     
+            file_dict['file_mid_time'] = file_start_time + datetime.timedelta(seconds=file_dict['file_length']/2)
+            
             if single_process:
                 self.retrieval_batches.append(create_batch(file_dict, date_start, date_end))
             else: 

@@ -59,6 +59,9 @@ class RealTimeWatcher(FileSystemEventHandler):
             return 0
         
         # Check that there is enough measurement time AND leave a margin of 10 minutes in case new files would be added to the batch
+        # TODO: In addition, we need to add a check for the batch time to be mostly covering the retrieval time
+        # this avoids e.g. a batch starting at 00:02 and ending at 00:12 to be retrieved between 00:10 and 00:20
+        # time_not_in_batch = (batch['batch_end_time'] - batch['retrieval_end_time']).total_seconds() + (batch['batch_start_time'] - batch['retrieval_start_time']).total_seconds()
         if (batch['batch_length_sec'] > threshold*self.retrieval_time*60) & (batch['batch_end_time'] < datetime.datetime.now() - datetime.timedelta(minutes=delay)):
             # Add batch to the the queue for retrieval
             self.queue.put(batch)
@@ -115,7 +118,7 @@ class RealTimeWatcher(FileSystemEventHandler):
             file_dict['file_start_time'] = file_start_time
             file_dict['file_end_time'] = file_end_time
             file_dict['file_length'] = (file_end_time - file_start_time).total_seconds()
-            
+            file_dict['file_mid_time'] = file_start_time + datetime.timedelta(seconds=file_dict['file_length']/2)
             # As a first test, we can implement this based on the filename only
             # check if instrument_id and scan_type already exist in one of the batch
             # batch dictionary is formatted as: {'files': [file], 'instrument_id': instrument_id, 'scan_type': scan_type}
@@ -156,8 +159,7 @@ class RealTimeWatcher(FileSystemEventHandler):
                             new_batch = 0
                             continue
                         elif (file_start_time > batch['retrieval_start_time']) or (file_end_time < batch['retrieval_end_time']):
-                            #logger.info('Part of the file is in the time window but not all --> ignoring it for now')
-                            logger.info('Part of the file is in the time window but not all --> we try adding it now')
+                            logger.info('Part of the file is in the time window but not all --> we try adding it now')                            
                             batch['files'].append(file)
                             if file_start_time < batch['batch_start_time']:
                                 batch['batch_start_time'] = file_start_time
@@ -177,13 +179,16 @@ class RealTimeWatcher(FileSystemEventHandler):
                 if new_batch:
                     # This should only create a new batch after having check all existing batches and make sure in all cases
                     # that the start_time of the file was bigger than the retrieval_end_time
-                    retrieval_start_time = round_datetime(file_end_time, round_to_minutes=self.retrieval_time)
+                    # To define the retrieval_start_time, we need to use the middle time of the file and round it to the nearest 10 minutes, 
+                    # if using only the file_end_time, we end up with wrong retrieval time
+                    retrieval_start_time = round_datetime(file_dict['file_mid_time'], round_to_minutes=self.retrieval_time)
                     retrieval_end_time = retrieval_start_time + datetime.timedelta(minutes=self.retrieval_time)
                     batch = create_batch(file_dict, retrieval_start_time, retrieval_end_time)
                     self.retrieval_batches.append(batch)
                     logger.info('New batch created for ID '+file_dict['instrument_id']+' and scan type: '+file_dict['scan_type']+' from file, with retrieval border:'+ str(retrieval_start_time)+' and '+str(retrieval_end_time))
             else:
-                retrieval_start_time = round_datetime(file_end_time, round_to_minutes=self.retrieval_time)
+                #TODO: for some instruments, we should create 2 batches with 1 single file (if contains more than 15 min measurement...)
+                retrieval_start_time = round_datetime(file_dict['file_mid_time'], round_to_minutes=self.retrieval_time)
                 retrieval_end_time = retrieval_start_time + datetime.timedelta(minutes=self.retrieval_time)
                 batch = create_batch(file_dict, retrieval_start_time, retrieval_end_time)
                 self.retrieval_batches.append(batch)
