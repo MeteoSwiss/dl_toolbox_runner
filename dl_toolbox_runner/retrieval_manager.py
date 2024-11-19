@@ -165,7 +165,7 @@ class RealTimeWatcher(FileSystemEventHandler):
                                 batch['batch_start_time'] = file_start_time
                             if file_end_time > batch['batch_end_time']:
                                 batch['batch_end_time'] = file_end_time
-                            batch['batch_length_sec'] = (batch['batch_end_time'] - batch['batch_start_time']).total_seconds()
+                            batch['batch_length_sec'] += file_dict['file_length'] # (batch['batch_end_time'] - batch['batch_start_time']).total_seconds()
                             new_batch = 0
                             continue
                             #new_batch = 0
