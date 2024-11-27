@@ -64,7 +64,10 @@ class Configurator(object):
             raise MissingConfig(f"Error during configuration writing: {e}")
         logger.info('Config file for '+self.conf['NC_instrument_id']+f' written to {self.configfile}')
 
-    def from_datafile(self):               
+    def from_datafile(self):
+        '''
+        Extracting configurations from the raw file
+        '''              
         if self.conf['inst_type'] == 'windcube':      
             # Some parameters needs to be read in the filename / file
             ds = xr.open_dataset(self.datafile)      
@@ -78,9 +81,7 @@ class Configurator(object):
             self.conf['system_latitude'] = float(ds.latitude.data)
             #self.conf['system_altitude'] =  float(ds.altitude.data)
             
-            # Reading the altitude of the instrument from config file 
-            # TODO: check if the altitude can be read from file but for windcube it is not (always) the case
-            #if np.isnan(self.conf['system_altitude']):
+            # Reading the altitude of the instrument from config file as this is not (always) present in the raw file
             logger.warning("Altitude not read from file but from csv file")
             # if the altitude is not given in the file, we read the altitude from the site in the csv config file
             dl_list_filename = get_config_path(self.main_config['inst_config_dir'] + self.main_config['dl_list_filename'])
@@ -102,10 +103,15 @@ class Configurator(object):
             
             # Try to extract number of direction from raw file directly:
             try:
-                # Sould be the number of unique azimuth values in the sweep group
+                # Sould be the number of unique azimuth values in the sweep group NOT considering vertical beam
                 # We need to round these value a little to avoid float comparison issues
                 rounded_directions = np.round(ds_sweep.azimuth.data, 1)
-                self.conf['number_of_direction'] = len(np.unique(rounded_directions)) - 1
+                self.conf['number_of_direction'] = len(np.unique(rounded_directions))
+                # Check whether 0 and 360 are both present -> remove 1
+                # The toolbox work with bins so it will consider both 0 and 360 as same angle
+                if 0 in rounded_directions and 360 in rounded_directions:
+                    self.conf['number_of_direction'] = len(np.unique(rounded_directions)) - 1
+                                    
                 logger.info(f"Number of directions found in raw file: {self.conf['number_of_direction']}")
             except Exception as e:
                 logger.error(f"Error during number of directions extraction: {e}")
@@ -162,7 +168,8 @@ class Configurator(object):
                 raise NotImplementedError("Range gate length not implemented")
             self.conf['pulses_per_direction'] = int(self.conf['accumulation_time'] * self.conf['puls_repetition_freq'])
             self.conf['number_of_gate_points'] = 16 #2*self.conf['range_gate_length'] / self.conf['system_wavelength']
-        elif self.conf['inst_type'] == 'halo':           
+        elif self.conf['inst_type'] == 'halo':
+            # For HALO instruments
             # From filename:
             self.conf['NC_L2_path'] = self.main_config['output_dir']
             self.conf['NC_L2_basename'] = self.main_config['output_file_prefix'] + self.conf['NC_instrument_id'] + '_'
