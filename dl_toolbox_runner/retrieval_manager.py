@@ -62,7 +62,7 @@ class RealTimeWatcher(FileSystemEventHandler):
         # TODO: In addition, we need to add a check for the batch time to be mostly covering the retrieval time
         # this avoids e.g. a batch starting at 00:02 and ending at 00:12 to be retrieved between 00:10 and 00:20
         # time_not_in_batch = (batch['batch_end_time'] - batch['retrieval_end_time']).total_seconds() + (batch['batch_start_time'] - batch['retrieval_start_time']).total_seconds()
-        if (batch['batch_length_sec'] > threshold*self.retrieval_time*60) & (batch['batch_end_time'] < datetime.datetime.now() - datetime.timedelta(minutes=delay)):
+        if (batch['batch_length_sec'] > threshold*self.retrieval_time*60) & (batch['retrieval_end_time'] < datetime.datetime.now() - datetime.timedelta(minutes=delay)):
             # Add batch to the the queue for retrieval
             self.queue.put(batch)
             logger.info(f"Adding batch to queue with size: {self.queue.qsize()}")
@@ -196,7 +196,7 @@ class RealTimeWatcher(FileSystemEventHandler):
                 #check = self.check_and_process_batch(batch, threshold=self.threshold, max_batch_age=self.max_batch_age)
             
             for batch in self.retrieval_batches:
-                check = self.check_and_process_batch(batch, threshold=self.threshold, max_batch_age=self.max_batch_age)
+                check = self.check_and_process_batch(batch, threshold=self.threshold, max_batch_age=self.max_batch_age, delay=15)
             logger.info(f'Number of batches: {len(self.retrieval_batches)}')
         except Exception as error:
             logger.error(f"{str(error)}, Ignoring this file...")
