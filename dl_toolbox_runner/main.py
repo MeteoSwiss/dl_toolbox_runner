@@ -3,6 +3,7 @@ import os
 import re
 import time
 import datetime
+from random import randint
 
 import pandas as pd
 
@@ -181,7 +182,8 @@ class Runner(object):
         for ind, batch in enumerate(self.retrieval_batches):
             # create a config file for the DL-toolbox run of this batch
             logger.info(f'Creating config file for batch {ind+1} containing {len(batch["files"])} files')
-            filename_conf = self.conf['toolbox_conf_prefix'] + f'{ind:03d}' + self.conf['toolbox_conf_ext']
+            conf_num = randint(0,99)
+            filename_conf = self.conf['toolbox_conf_prefix'] + f'{conf_num:03d}' + self.conf['toolbox_conf_ext']
             batch['conf'] = os.path.join(self.conf['toolbox_confdir'], filename_conf)
             tmp_conf = Configurator(batch['instrument_id'], batch['scan_type'], batch['files'][0], batch['conf'], self.conf)  # use first file in batch as reference
             tmp_conf.run()
